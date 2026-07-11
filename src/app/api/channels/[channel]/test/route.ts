@@ -68,17 +68,55 @@ export async function POST(
         return NextResponse.json({ error: 'Telegram token not found. Please save it first.' }, { status: 400 });
       }
       
-      const token = channelData.encrypted_token;
+      let token = channelData.encrypted_token;
+      try {
+        const { decrypt } = await import('@/lib/encryption');
+        token = decrypt(token);
+      } catch (e) {
+        // If decryption fails, assume it might be a legacy raw token
+        console.log('Using legacy raw token for Telegram test');
+      }
       
-      // Since we might not have a chat_id yet to send a real message, we will just verify the bot token works
+      // verify the bot token works
       const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
       if (!res.ok) {
         return NextResponse.json({ error: 'Invalid Telegram bot token' }, { status: 400 });
       }
       
-      // We cannot send a test message yet because we need the user to chat with the bot to establish a chat_id. 
-      // For this test, verifying the bot token via getMe is sufficient to prove the credentials are correct.
-      return NextResponse.json({ success: true, message: 'Telegram token verified successfully!' });
+      // Try to get chat_id from getUpdates
+      const updatesRes = await fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=100`);
+      if (!updatesRes.ok) {
+        return NextResponse.json({ error: 'Failed to fetch updates from Telegram. Please make sure you have sent a message to the bot.' }, { status: 500 });
+      }
+      
+      const updatesData = await updatesRes.json();
+      const messages = updatesData.result || [];
+      if (messages.length === 0) {
+        return NextResponse.json({ error: 'No chat history found. Please send a message (e.g., /start) to your bot first, then try testing again.' }, { status: 400 });
+      }
+      
+      // Find the most recent valid chat_id
+      const lastMessage = [...messages].reverse().find(m => m.message?.chat?.id);
+      if (!lastMessage) {
+        return NextResponse.json({ error: 'Could not extract your chat ID from recent messages. Please send a new text message to the bot and try again.' }, { status: 400 });
+      }
+      const chatId = lastMessage.message.chat.id;
+      
+      // Send the test message
+      const sendRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: '✅ This is a test notification from your RemindME settings! Your bot is correctly configured.',
+        })
+      });
+      
+      if (!sendRes.ok) {
+        return NextResponse.json({ error: 'Failed to send test message via Telegram' }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, message: 'Test message sent successfully!' });
     }
     
     if (channelParam === 'push') {

@@ -10,6 +10,8 @@ export default function SettingsPage() {
   const router = useRouter()
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
   const [telegramToken, setTelegramToken] = useState('')
+  const [hasTelegramToken, setHasTelegramToken] = useState(false)
+  const [maskedTelegramToken, setMaskedTelegramToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [logs, setLogs] = useState<Record<string, any>[]>([])
   const [nudgeDelayHours, setNudgeDelayHours] = useState(4)
@@ -41,6 +43,16 @@ export default function SettingsPage() {
         if (data) setLogs(data)
       })
 
+    // Load telegram token status
+    fetch('/api/settings/telegram')
+      .then(res => res.json())
+      .then(data => {
+        if (data.hasToken) {
+          setHasTelegramToken(true)
+          setMaskedTelegramToken(data.maskedToken)
+        }
+      })
+
     // Load defaults from local storage
     const storedChannels = localStorage.getItem('defaultChannels');
     if (storedChannels) setDefaultChannels(JSON.parse(storedChannels));
@@ -67,15 +79,26 @@ export default function SettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
       
-      // Upsert telegram token to notification_channels if provided
-      if (telegramToken) {
-        const { error } = await supabase.from('notification_channels').upsert({
-          user_id: user.id,
-          channel: 'telegram',
-          encrypted_token: telegramToken
-        }, { onConflict: 'user_id,channel' })
+      // Handle telegram token submission
+      if (telegramToken && !hasTelegramToken) {
+        const res = await fetch('/api/settings/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: telegramToken })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to save telegram token');
+        }
         
-        if (error) throw error
+        // Refresh token status
+        const refreshRes = await fetch('/api/settings/telegram');
+        const refreshData = await refreshRes.json();
+        if (refreshData.hasToken) {
+          setHasTelegramToken(true);
+          setMaskedTelegramToken(refreshData.maskedToken);
+          setTelegramToken('');
+        }
       }
 
       // Upsert user settings
@@ -109,6 +132,23 @@ export default function SettingsPage() {
       showToast(`Test notification sent via ${channel}!`, 'success')
     } catch (err: any) {
       showToast(err.message, 'error')
+    }
+  }
+
+  const deleteTelegramToken = async () => {
+    if (!window.confirm('Are you sure you want to delete your Telegram token?')) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/settings/telegram', { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete token');
+      setHasTelegramToken(false);
+      setMaskedTelegramToken('');
+      setTelegramToken('');
+      showToast('Telegram token deleted', 'success');
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -149,27 +189,48 @@ export default function SettingsPage() {
             3. Copy the HTTP API Token and paste it below. You own this bot completely.
           </p>
           
-          <form onSubmit={handleSave} className="space-y-6">
-            <div>
-              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Telegram Bot Token</label>
-              <input
-                type="text"
-                value={telegramToken}
-                onChange={(e) => setTelegramToken(e.target.value)}
-                placeholder="123456789:ABCdefGHIjklmNOPqrstUVwxyZ"
-                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-mono text-sm"
-              />
+          {hasTelegramToken ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-lg">
+                <div>
+                  <div className="text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-1">Saved Token</div>
+                  <div className="font-mono text-sm text-[rgba(255,255,255,0.92)]">{maskedTelegramToken}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={deleteTelegramToken}
+                  disabled={loading}
+                  className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                  title="Delete Token"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+              <p className="text-xs text-[rgba(255,255,255,0.4)]">To update your token, delete the existing one first.</p>
             </div>
+          ) : (
+            <form onSubmit={handleSave} className="space-y-6">
+              <div>
+                <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Telegram Bot Token</label>
+                <input
+                  type="text"
+                  value={telegramToken}
+                  onChange={(e) => setTelegramToken(e.target.value)}
+                  placeholder="123456789:ABCdefGHIjklmNOPqrstUVwxyZ"
+                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-mono text-sm"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
-            >
-              <Save size={18} />
-              {loading ? 'Saving...' : 'Save Token'}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading || !telegramToken}
+                className="bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save size={18} />
+                {loading ? 'Saving...' : 'Save Token'}
+              </button>
+            </form>
+          )}
         </section>
 
         {/* Global Notification Defaults */}
