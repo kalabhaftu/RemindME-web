@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  /* Base surfaces */
+  --bg-canvas: #06070A;
+  --bg-surface-1: rgba(255, 255, 255, 0.03);
+  --bg-surface-2: rgba(255, 255, 255, 0.06);
+  --bg-surface-3: rgba(255, 255, 255, 0.10);
+
+  /* Glass layer */
+  --glass-bg: rgba(10, 12, 20, 0.55);
+  --glass-blur: 18px;
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* Blue accent */
+  --accent-500: #3B82F6;
+  --accent-400: #5B9CFF;
+  --accent-600: #2563EB;
+  --accent-gradient: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%);
+
+  /* Text */
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.60);
+  --text-tertiary: rgba(255, 255, 255, 0.38);
+
+  /* Semantic */
+  --state-success: #34D399;
+  --state-warning: #F59E0B;
+  --state-danger: #EF4444;
+}
+
+@theme inline {
+  --color-background: var(--bg-canvas);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans), -apple-system, 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
