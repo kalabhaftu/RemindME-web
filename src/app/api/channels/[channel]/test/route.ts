@@ -105,15 +105,14 @@ export async function POST(
     }
     
     if (channelParam === 'push') {
-      // Fetch user's push token (FCM device token)
+      // Fetch ALL user push tokens (send to every registered device)
       const { data: channelData, error: dbError } = await supabase
         .from('notification_channels')
         .select('encrypted_token')
         .eq('user_id', user.id)
-        .eq('channel', 'push')
-        .single();
-        
-      if (dbError || !channelData?.encrypted_token) {
+        .eq('channel', 'push');
+
+      if (dbError || !channelData || channelData.length === 0) {
         return NextResponse.json({ error: 'Push device token not found. Please sign in to the mobile app first to register your device.' }, { status: 400 });
       }
 
@@ -124,17 +123,25 @@ export async function POST(
 
       try {
         const { sendFcmNotification } = await import('@/lib/fcm');
-        await sendFcmNotification(
-          serviceAccount,
-          channelData.encrypted_token,
-          'Test Notification',
-          'This is a test push notification from your RemindME settings!'
+        const results = await Promise.allSettled(
+          channelData.map((cd) =>
+            sendFcmNotification(
+              serviceAccount,
+              cd.encrypted_token,
+              'Test Notification',
+              'This is a test push notification from your RemindME settings!'
+            )
+          )
         );
+        const failed = results.filter((r) => r.status === 'rejected');
+        if (failed.length > 0) {
+          console.error('FCM delivery failures:', failed);
+        }
       } catch (err: any) {
         return NextResponse.json({ error: 'FCM delivery failed: ' + err.message }, { status: 500 });
       }
 
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, deviceCount: channelData.length });
     }
     
     if (channelParam === 'in_app') {

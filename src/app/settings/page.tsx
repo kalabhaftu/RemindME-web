@@ -55,7 +55,7 @@ export default function SettingsPage() {
         }
       })
 
-    // Load defaults from local storage
+    // Load defaults from local storage (fallback), then from Supabase
     const storedChannels = localStorage.getItem('defaultChannels');
     if (storedChannels) setDefaultChannels(JSON.parse(storedChannels));
     const storedLeadTime = localStorage.getItem('defaultLeadTime');
@@ -63,12 +63,17 @@ export default function SettingsPage() {
     const storedCustomTime = localStorage.getItem('defaultCustomTime');
     if (storedCustomTime) setDefaultCustomTime(storedCustomTime);
 
-    // Load user settings
+    // Load user settings from Supabase (overrides local storage)
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        supabase.from('user_settings').select('nudge_delay_hours').eq('user_id', user.id).single()
+        supabase.from('user_settings').select('*').eq('user_id', user.id).single()
           .then(({ data }) => {
-            if (data) setNudgeDelayHours(data.nudge_delay_hours)
+            if (data) {
+              if (data.nudge_delay_hours) setNudgeDelayHours(data.nudge_delay_hours)
+              if (data.default_channels) setDefaultChannels(data.default_channels)
+              if (data.default_lead_time) setDefaultLeadTime(data.default_lead_time)
+              if (data.default_custom_time) setDefaultCustomTime(data.default_custom_time)
+            }
           })
       }
     })
@@ -105,14 +110,17 @@ export default function SettingsPage() {
         }
       }
 
-      // Upsert user settings
+      // Upsert user settings (synced globally)
       const { error: settingsError } = await supabase.from('user_settings').upsert({
         user_id: user.id,
-        nudge_delay_hours: nudgeDelayHours
+        nudge_delay_hours: nudgeDelayHours,
+        default_channels: defaultChannels,
+        default_lead_time: defaultLeadTime,
+        default_custom_time: defaultCustomTime,
       })
       if (settingsError) throw settingsError
       
-      // Save global defaults to local storage
+      // Also cache locally for offline access
       localStorage.setItem('defaultChannels', JSON.stringify(defaultChannels));
       localStorage.setItem('defaultLeadTime', defaultLeadTime);
       localStorage.setItem('defaultCustomTime', defaultCustomTime);
