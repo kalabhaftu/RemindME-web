@@ -52,11 +52,6 @@ export default function SettingsPage() {
         const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
         await navigator.serviceWorker.ready
 
-        // Unsubscribe any stale push subscription from old VAPID key
-        const existingSub = await reg.pushManager.getSubscription()
-        if (existingSub) {
-          await existingSub.unsubscribe()
-        }
 
         const { requestFcmToken } = await import('@/lib/firebase-client')
         const token = await requestFcmToken(reg)

@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getMessaging, getToken, onMessage } from 'firebase/messaging'
+import { getMessaging, getToken, onMessage, deleteToken } from 'firebase/messaging'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -26,10 +26,24 @@ export async function requestFcmToken(registration?: ServiceWorkerRegistration):
       return null
     }
 
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: registration,
-    })
+    let token = null
+    try {
+      token = await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration,
+      })
+    } catch (err) {
+      console.warn('Initial getToken failed, attempting recovery...', err)
+      try {
+        await deleteToken(messaging)
+      } catch (deleteErr) {
+        console.warn('deleteToken also failed, user may need to clear site data', deleteErr)
+      }
+      token = await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration,
+      })
+    }
     return token
   } catch (err) {
     console.error('FCM token registration failed:', err)
