@@ -63,11 +63,14 @@ export default function SettingsPage() {
         if (token) {
           const { data: { user } } = await supabase.auth.getUser()
           if (user) {
-            await supabase.from('notification_channels').upsert({
+            const { error: pushError } = await supabase.from('notification_channels').insert({
               user_id: user.id,
               channel: 'push',
               encrypted_token: token,
-            }, { onConflict: 'user_id,channel,encrypted_token' })
+            })
+            if (pushError && pushError.code !== '23505') {
+              console.warn('Failed to save push token to DB:', pushError)
+            }
           }
         }
       } catch (err) {

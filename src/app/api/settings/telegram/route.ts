@@ -31,12 +31,38 @@ export async function POST(request: Request) {
 
     const encryptedToken = encrypt(token);
 
-    const { error } = await supabase.from('notification_channels').upsert({
-      user_id: user.id,
-      channel: 'telegram',
-      encrypted_token: encryptedToken,
-      label: botUsername ? `@${botUsername}` : null,
-    }, { onConflict: 'user_id,channel' });
+    const { data: existing, error: fetchError } = await supabase
+      .from('notification_channels')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('channel', 'telegram')
+      .maybeSingle();
+
+    if (fetchError) {
+      return NextResponse.json({ error: 'Failed to check token' }, { status: 500 });
+    }
+
+    let error;
+    if (existing) {
+      const { error: updateErr } = await supabase
+        .from('notification_channels')
+        .update({
+          encrypted_token: encryptedToken,
+          label: botUsername ? `@${botUsername}` : null,
+        })
+        .eq('id', existing.id);
+      error = updateErr;
+    } else {
+      const { error: insertErr } = await supabase
+        .from('notification_channels')
+        .insert({
+          user_id: user.id,
+          channel: 'telegram',
+          encrypted_token: encryptedToken,
+          label: botUsername ? `@${botUsername}` : null,
+        });
+      error = insertErr;
+    }
 
     if (error) {
       return NextResponse.json({ error: 'Failed to save token' }, { status: 500 });
