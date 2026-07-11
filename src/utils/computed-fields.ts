@@ -151,6 +151,17 @@ export function generateOccurrences(
         else if (cycle === 'yearly') curr = addYears(curr, 1);
         else curr = addDays(curr, 1);
       }
+    } else if (item.category === 'custom_holiday' && (item as { holiday_details?: { holiday_date: string }[] }).holiday_details?.[0]?.holiday_date) {
+      const hd = (item as { holiday_details: { holiday_date: string }[] }).holiday_details[0]
+      const holidayDate = new Date(hd.holiday_date)
+      let curr = new Date(holidayDate)
+      curr.setUTCFullYear(startD.getUTCFullYear())
+      if (curr.getTime() < startD.getTime()) curr.setUTCFullYear(curr.getUTCFullYear() + 1)
+
+      while (!isAfter(curr, endD)) {
+        currentDates.push(new Date(curr))
+        curr = addYears(curr, 1)
+      }
     } else if (item.category === 'task' && item.task_details?.[0]?.due_at) {
       const due = new Date(item.task_details[0].due_at);
       const rr = item.recurrence_rules?.[0];

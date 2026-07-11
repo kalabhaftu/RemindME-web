@@ -1,19 +1,34 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
+import Link from 'next/link'
 import { ReminderOccurrence } from '@/utils/computed-fields'
 import { getZodiacSign } from '@/utils/computed'
+import { getEditHref } from '@/lib/edit-links'
+import { snoozeReminder } from '@/app/actions/reminders'
 import { format, isToday, isTomorrow, differenceInDays } from 'date-fns'
-import { Circle, BellRing, Edit2, CheckCircle2 } from 'lucide-react'
+import { Circle, Edit2, CheckCircle2, BellRing } from 'lucide-react'
 
 interface UpcomingPanelProps {
   filter: '3d' | '7d' | 'month'
   setFilter: (f: '3d' | '7d' | 'month') => void
   occurrences: ReminderOccurrence[]
   onMarkDone: (id: string, date: string) => void
+  onSnoozed?: () => void
 }
 
-export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone }: UpcomingPanelProps) {
+export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSnoozed }: UpcomingPanelProps) {
+  const [snoozing, setSnoozing] = useState<string | null>(null)
+
+  const handleSnooze = async (id: string, date: string) => {
+    const key = `${id}-${date}`
+    setSnoozing(key)
+    try {
+      await snoozeReminder(id, date, 1)
+      onSnoozed?.()
+    } catch { /* silent */ }
+    finally { setSnoozing(null) }
+  }
   const renderItemDetails = (occ: ReminderOccurrence) => {
     const item = occ.item
     if (item.category === 'person' && item.person_details?.length) {
@@ -92,7 +107,7 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone }: Up
       <div className="space-y-3">
         {occurrences.length === 0 ? (
           <div className="p-12 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px] flex flex-col items-center justify-center">
-            <BellRing size={32} className="text-[rgba(255,255,255,0.1)] mb-4" />
+            <Circle size={32} className="text-[rgba(255,255,255,0.1)] mb-4" />
             <h3 className="text-[15px] font-medium text-[rgba(255,255,255,0.6)] mb-1">All caught up</h3>
             <p className="text-[13px] text-[rgba(255,255,255,0.38)]">No upcoming reminders for this period.</p>
           </div>
@@ -125,12 +140,23 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone }: Up
                 {occ.status === 'completed-past' && (
                   <CheckCircle2 size={20} className="text-[#34D399]" />
                 )}
-                <button className="text-[rgba(255,255,255,0.38)] hover:text-white transition-colors" title="Snooze">
-                  <BellRing size={20} />
-                </button>
-                <button className="text-[rgba(255,255,255,0.38)] hover:text-white transition-colors" title="Edit">
+                {occ.status !== 'completed-past' && (
+                  <button
+                    onClick={() => handleSnooze(occ.item.id, format(occ.date, 'yyyy-MM-dd'))}
+                    disabled={snoozing === `${occ.item.id}-${format(occ.date, 'yyyy-MM-dd')}`}
+                    className="text-[rgba(255,255,255,0.38)] hover:text-[#F59E0B] transition-colors disabled:opacity-30"
+                    title="Snooze 1 hour"
+                  >
+                    <BellRing size={20} />
+                  </button>
+                )}
+                <Link
+                  href={getEditHref(occ.item)}
+                  className="text-[rgba(255,255,255,0.38)] hover:text-white transition-colors"
+                  title="Edit"
+                >
                   <Edit2 size={20} />
-                </button>
+                </Link>
               </div>
             </div>
           ))

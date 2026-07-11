@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { computeInitialNextOccurrence } from '@/lib/occurrence-scheduler'
 
 const baseReminderSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -31,6 +32,13 @@ const taskDetailsSchema = z.object({
   due_at: z.string().optional(), // ISO date string
 })
 
+const holidayDetailsSchema = z.object({
+  country_code: z.string(),
+  holiday_key: z.string(),
+  holiday_date: z.string(),
+  is_custom: z.boolean().optional(),
+})
+
 const recurrenceRuleSchema = z.object({
   frequency: z.enum(['none', 'daily', 'weekly', 'monthly', 'yearly', 'custom_days']),
   interval_count: z.number().default(1),
@@ -43,12 +51,14 @@ const notificationPreferenceSchema = z.object({
   enabled: z.boolean(),
   lead_time: z.enum(['at_time', 'morning_of', 'noon_of', 'evening_of', 'custom']),
   custom_time: z.string().optional(), // HH:mm:ss
+  offset_days: z.number().optional(),
 })
 
 export type ReminderPayload = z.infer<typeof baseReminderSchema> & {
   person_details?: z.infer<typeof personDetailsSchema>
   subscription_details?: z.infer<typeof subscriptionDetailsSchema>
   task_details?: z.infer<typeof taskDetailsSchema>
+  holiday_details?: z.infer<typeof holidayDetailsSchema>
   recurrence_rules?: z.infer<typeof recurrenceRuleSchema>
   notification_preferences?: z.infer<typeof notificationPreferenceSchema>[]
 }
@@ -74,9 +84,35 @@ export type ReminderItemWithDetails = {
   person_details?: z.infer<typeof personDetailsSchema>[]
   subscription_details?: z.infer<typeof subscriptionDetailsSchema>[]
   task_details?: z.infer<typeof taskDetailsSchema>[]
+  holiday_details?: z.infer<typeof holidayDetailsSchema>[]
   recurrence_rules?: z.infer<typeof recurrenceRuleSchema>[]
   notification_preferences?: z.infer<typeof notificationPreferenceSchema>[]
   escalation_state?: EscalationState[]
+}
+
+export async function getReminder(id: string): Promise<ReminderItemWithDetails | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data, error } = await supabase
+    .from('reminder_items')
+    .select(`
+      *,
+      person_details (*),
+      subscription_details (*),
+      task_details (*),
+      holiday_details (*),
+      recurrence_rules (*),
+      notification_preferences (*),
+      escalation_state (*)
+    `)
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (error) return null
+  return data
 }
 
 export async function getReminders(): Promise<ReminderItemWithDetails[]> {
@@ -92,6 +128,7 @@ export async function getReminders(): Promise<ReminderItemWithDetails[]> {
       person_details (*),
       subscription_details (*),
       task_details (*),
+      holiday_details (*),
       recurrence_rules (*),
       notification_preferences (*),
       escalation_state (*)
@@ -133,24 +170,103 @@ export async function createReminder(payload: ReminderPayload) {
     await supabase.from('subscription_details').insert({ reminder_item_id: itemId, ...payload.subscription_details })
   } else if (payload.category === 'task' && payload.task_details) {
     await supabase.from('task_details').insert({ reminder_item_id: itemId, ...payload.task_details })
+  } else if (payload.category === 'custom_holiday' && payload.holiday_details) {
+    await supabase.from('holiday_details').insert({ reminder_item_id: itemId, ...payload.holiday_details })
   }
 
   // 3. Insert Recurrence
   if (payload.recurrence_rules) {
-    await supabase.from('recurrence_rules').insert({ reminder_item_id: itemId, ...payload.recurrence_rules })
+    const nextOccurrence = computeInitialNextOccurrence(payload)
+    await supabase.from('recurrence_rules').insert({
+      reminder_item_id: itemId,
+      ...payload.recurrence_rules,
+      next_occurrence_at: nextOccurrence,
+    })
   }
 
   // 4. Insert Notifications
   if (payload.notification_preferences && payload.notification_preferences.length > 0) {
     const prefs = payload.notification_preferences.map(p => ({
       reminder_item_id: itemId,
-      ...p
+      channel: p.channel,
+      enabled: p.enabled,
+      lead_time: p.lead_time,
+      custom_time: p.custom_time,
+      offset_days: p.offset_days ?? 0,
     }))
     await supabase.from('notification_preferences').insert(prefs)
   }
 
   revalidatePath('/')
+  revalidatePath('/people')
+  revalidatePath('/subscriptions')
+  revalidatePath('/tasks')
+  revalidatePath('/holidays')
   return item
+}
+
+export async function updateReminder(id: string, payload: Partial<ReminderPayload>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: existing } = await supabase
+    .from('reminder_items')
+    .select('category')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!existing) throw new Error('Reminder not found')
+
+  const { error: itemError } = await supabase
+    .from('reminder_items')
+    .update({
+      name: payload.name,
+      notes: payload.notes,
+      icon_key: payload.icon_key,
+      color_accent: payload.color_accent,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (itemError) throw new Error(itemError.message)
+
+  if (payload.person_details) {
+    await supabase.from('person_details').upsert({ reminder_item_id: id, ...payload.person_details })
+  }
+  if (payload.subscription_details) {
+    await supabase.from('subscription_details').upsert({ reminder_item_id: id, ...payload.subscription_details })
+  }
+  if (payload.task_details) {
+    await supabase.from('task_details').upsert({ reminder_item_id: id, ...payload.task_details })
+  }
+  if (payload.recurrence_rules) {
+    const fullPayload = { ...payload, category: existing.category } as ReminderPayload
+    const nextOccurrence = computeInitialNextOccurrence(fullPayload)
+    await supabase.from('recurrence_rules').upsert({
+      reminder_item_id: id,
+      ...payload.recurrence_rules,
+      next_occurrence_at: nextOccurrence,
+    })
+  }
+  if (payload.notification_preferences) {
+    await supabase.from('notification_preferences').delete().eq('reminder_item_id', id)
+    const prefs = payload.notification_preferences.map(p => ({
+      reminder_item_id: id,
+      channel: p.channel,
+      enabled: p.enabled,
+      lead_time: p.lead_time,
+      custom_time: p.custom_time,
+      offset_days: p.offset_days ?? 0,
+    }))
+    if (prefs.length > 0) await supabase.from('notification_preferences').insert(prefs)
+  }
+
+  revalidatePath('/')
+  revalidatePath('/people')
+  revalidatePath('/subscriptions')
+  revalidatePath('/tasks')
 }
 
 export async function deleteReminder(id: string) {
@@ -160,6 +276,23 @@ export async function deleteReminder(id: string) {
   const { error } = await supabase.from('reminder_items').delete().eq('id', id)
   if (error) throw new Error(error.message)
     
+  revalidatePath('/')
+  revalidatePath('/people')
+  revalidatePath('/subscriptions')
+  revalidatePath('/tasks')
+}
+
+export async function snoozeReminder(reminderItemId: string, occurrenceDate: string, hours = 1) {
+  const supabase = await createClient()
+  const snoozedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+
+  const { error } = await supabase.from('snooze_state').upsert({
+    reminder_item_id: reminderItemId,
+    occurrence_date: occurrenceDate,
+    snoozed_until: snoozedUntil,
+  }, { onConflict: 'reminder_item_id, occurrence_date' })
+
+  if (error) throw new Error(error.message)
   revalidatePath('/')
 }
 

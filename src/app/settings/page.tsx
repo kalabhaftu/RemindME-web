@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut } from 'lucide-react'
+import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -14,6 +14,10 @@ export default function SettingsPage() {
   const [loadingTelegram, setLoadingTelegram] = useState(true)
   const [maskedTelegramToken, setMaskedTelegramToken] = useState('')
   const [botUsername, setBotUsername] = useState<string | null>(null)
+  const [hasChatId, setHasChatId] = useState(false)
+  const [maskedChatId, setMaskedChatId] = useState('')
+  const [chatIdInput, setChatIdInput] = useState('')
+  const [detectingChatId, setDetectingChatId] = useState(false)
   const [loading, setLoading] = useState(false)
   const [logs, setLogs] = useState<Record<string, any>[]>([])
   const [nudgeDelayHours, setNudgeDelayHours] = useState(4)
@@ -89,6 +93,8 @@ export default function SettingsPage() {
           setHasTelegramToken(true)
           setMaskedTelegramToken(data.maskedToken)
           setBotUsername(data.botUsername ?? null)
+          setHasChatId(data.hasChatId ?? false)
+          setMaskedChatId(data.maskedChatId ?? '')
         }
       })
       .finally(() => {
@@ -189,6 +195,44 @@ export default function SettingsPage() {
     }
   }
 
+  const detectChatId = async () => {
+    setDetectingChatId(true)
+    try {
+      const res = await fetch('/api/settings/telegram/chat-id', { method: 'PUT' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Detection failed')
+      setHasChatId(true)
+      setMaskedChatId(data.chatId ? `***${String(data.chatId).slice(-4)}` : '****')
+      showToast('Chat ID detected and saved!', 'success')
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Detection failed', 'error')
+    } finally {
+      setDetectingChatId(false)
+    }
+  }
+
+  const saveChatId = async () => {
+    if (!chatIdInput.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/settings/telegram/chat-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId: chatIdInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save')
+      setHasChatId(true)
+      setMaskedChatId(`***${chatIdInput.trim().slice(-4)}`)
+      setChatIdInput('')
+      showToast('Chat ID saved!', 'success')
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Failed to save', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const deleteTelegramToken = async () => {
     if (!window.confirm('Are you sure you want to delete your Telegram token?')) return;
     setLoading(true);
@@ -198,6 +242,8 @@ export default function SettingsPage() {
       setHasTelegramToken(false);
       setMaskedTelegramToken('');
       setBotUsername(null);
+      setHasChatId(false);
+      setMaskedChatId('');
       setTelegramToken('');
       showToast('Telegram token deleted', 'success');
     } catch (err: any) {
@@ -222,6 +268,30 @@ export default function SettingsPage() {
         showToast('Error deleting account', 'error')
       }
     }
+  }
+
+  const exportData = async () => {
+    try {
+      const res = await fetch('/api/account/export')
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `remindme-export-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      showToast('Data exported successfully', 'success')
+    } catch {
+      showToast('Failed to export data', 'error')
+    }
+  }
+
+  const logoutAllDevices = async () => {
+    if (!window.confirm('Sign out on all devices? You will need to log in again everywhere.')) return
+    const { error } = await supabaseRef.current.auth.signOut({ scope: 'global' })
+    if (error) showToast(error.message, 'error')
+    else router.push('/login')
   }
 
   return (
@@ -286,6 +356,46 @@ export default function SettingsPage() {
                 </button>
               </div>
               <p className="text-xs text-[rgba(255,255,255,0.4)]">To update your token, delete the existing one first.</p>
+
+              <div className="pt-4 border-t border-[rgba(255,255,255,0.08)] space-y-4">
+                <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Chat ID</h3>
+                <p className="text-xs text-[rgba(255,255,255,0.45)]">
+                  4. Open your bot in Telegram and send <code>/start</code>.<br/>
+                  5. Click Detect below, or paste your Chat ID manually.
+                </p>
+                {hasChatId ? (
+                  <div className="flex items-center justify-between p-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-lg">
+                    <div>
+                      <div className="text-[12px] uppercase tracking-[0.02em] text-[rgba(255,255,255,0.6)]">Saved Chat ID</div>
+                      <div className="font-mono text-sm mt-1">{maskedChatId}</div>
+                    </div>
+                    <button type="button" onClick={detectChatId} disabled={detectingChatId}
+                      className="text-sm text-[#3B82F6] hover:underline disabled:opacity-50">
+                      {detectingChatId ? 'Detecting…' : 'Re-detect'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <button type="button" onClick={detectChatId} disabled={detectingChatId}
+                      className="w-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-4 py-3 rounded-[8px] text-sm font-medium transition-colors disabled:opacity-50">
+                      {detectingChatId ? 'Detecting Chat ID…' : 'Detect Chat ID from /start message'}
+                    </button>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={chatIdInput}
+                        onChange={e => setChatIdInput(e.target.value)}
+                        placeholder="Or paste Chat ID manually"
+                        className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-2 text-sm font-mono focus:outline-none focus:border-[#3B82F6]/60"
+                      />
+                      <button type="button" onClick={saveChatId} disabled={loading || !chatIdInput.trim()}
+                        className="bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-4 py-2 rounded-[8px] text-sm font-medium disabled:opacity-50">
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSave} className="space-y-6">
@@ -453,6 +563,28 @@ export default function SettingsPage() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Account */}
+        <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6">
+          <h2 className="text-lg font-medium text-white mb-2">Account</h2>
+          <p className="text-sm text-[rgba(255,255,255,0.6)] mb-6">
+            Export your data or sign out on all devices.
+          </p>
+          <div className="flex gap-4 flex-wrap">
+            <button
+              onClick={exportData}
+              className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
+            >
+              <Download size={18} /> Export Data
+            </button>
+            <button
+              onClick={logoutAllDevices}
+              className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
+            >
+              <LogOut size={18} /> Sign Out All Devices
+            </button>
+          </div>
         </section>
 
         {/* Danger Zone */}

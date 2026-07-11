@@ -110,7 +110,7 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabase
       .from('notification_channels')
-      .select('encrypted_token, label')
+      .select('encrypted_token, label, chat_id_encrypted')
       .eq('user_id', user.id)
       .eq('channel', 'telegram')
       .single();
@@ -126,6 +126,7 @@ export async function GET(request: Request) {
       const masked = maskToken(decrypted);
 
       let botUsername: string | null = null;
+      let maskedChatId: string | null = null;
 
       // label is stored as "@username" — strip the @ for the URL
       if (data.label) {
@@ -141,7 +142,14 @@ export async function GET(request: Request) {
         } catch {}
       }
 
-      return NextResponse.json({ hasToken: true, maskedToken: masked, botUsername });
+      if (data.chat_id_encrypted) {
+        try {
+          const chatId = decrypt(data.chat_id_encrypted);
+          maskedChatId = chatId.length > 4 ? `***${chatId.slice(-4)}` : '****';
+        } catch {}
+      }
+
+      return NextResponse.json({ hasToken: true, maskedToken: masked, botUsername, hasChatId: !!data.chat_id_encrypted, maskedChatId });
     } catch (e) {
       console.error('Decryption error:', e);
       return NextResponse.json({ hasToken: true, maskedToken: '********', botUsername: null });
