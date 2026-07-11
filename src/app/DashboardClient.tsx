@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { AddReminderModal } from '@/components/AddReminderModal'
-import { Bell, Plus, Settings } from 'lucide-react'
+import { Bell, Plus, Settings, BellRing, Search, Layout } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { generateOccurrences, ReminderOccurrence } from '@/utils/computed-fields'
@@ -105,13 +105,19 @@ export default function DashboardClient({ initialReminders }: { initialReminders
     <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] p-6 lg:p-12 font-sans">
       <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] rounded-xl flex items-center justify-center">
-            <Bell size={20} className="text-[#3B82F6]" />
-          </div>
+          <Link href="/notifications" className="w-10 h-10 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] rounded-xl flex items-center justify-center hover:bg-[rgba(255,255,255,0.1)] transition-colors">
+            <BellRing size={20} className="text-[#3B82F6]" />
+          </Link>
           <h1 className="text-[28px] font-semibold tracking-tight text-[rgba(255,255,255,0.92)]">RemindME</h1>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Link href="/search" className="p-2 text-[rgba(255,255,255,0.6)] hover:text-white hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors" title="Search">
+            <Search size={20} />
+          </Link>
+          <Link href="/templates" className="p-2 text-[rgba(255,255,255,0.6)] hover:text-white hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors" title="Templates">
+            <Layout size={20} />
+          </Link>
           <Link href="/settings" className="p-2 text-[rgba(255,255,255,0.6)] hover:text-white hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors">
             <Settings size={20} />
           </Link>
