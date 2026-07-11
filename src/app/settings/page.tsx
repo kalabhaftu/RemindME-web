@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
   const [telegramToken, setTelegramToken] = useState('')
   const [hasTelegramToken, setHasTelegramToken] = useState(false)
+  const [loadingTelegram, setLoadingTelegram] = useState(true)
   const [maskedTelegramToken, setMaskedTelegramToken] = useState('')
   const [botUsername, setBotUsername] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -66,7 +67,7 @@ export default function SettingsPage() {
               user_id: user.id,
               channel: 'push',
               encrypted_token: token,
-            }, { onConflict: 'user_id,channel' })
+            }, { onConflict: 'user_id,channel,encrypted_token' })
           }
         }
       } catch (err) {
@@ -82,6 +83,7 @@ export default function SettingsPage() {
       })
 
     // Load telegram token status
+    setLoadingTelegram(true)
     fetch('/api/settings/telegram')
       .then(res => res.json())
       .then(data => {
@@ -90,6 +92,9 @@ export default function SettingsPage() {
           setMaskedTelegramToken(data.maskedToken)
           setBotUsername(data.botUsername ?? null)
         }
+      })
+      .finally(() => {
+        setLoadingTelegram(false)
       })
 
     // Load defaults from local storage (fallback), then from Supabase
@@ -249,7 +254,11 @@ export default function SettingsPage() {
             3. Copy the HTTP API Token and paste it below. You own this bot completely.
           </p>
           
-          {hasTelegramToken ? (
+          {loadingTelegram ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6]"></div>
+            </div>
+          ) : hasTelegramToken ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-lg">
                 <div className="space-y-1">
