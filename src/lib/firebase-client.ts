@@ -16,7 +16,7 @@ const messaging = typeof window !== 'undefined' ? getMessaging(app) : null
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY || ''
 
-export async function requestFcmToken(): Promise<string | null> {
+export async function requestFcmToken(registration?: ServiceWorkerRegistration): Promise<string | null> {
   if (!messaging) return null
 
   try {
@@ -26,7 +26,10 @@ export async function requestFcmToken(): Promise<string | null> {
       return null
     }
 
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY })
+    const token = await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration,
+    })
     return token
   } catch (err) {
     console.error('FCM token registration failed:', err)

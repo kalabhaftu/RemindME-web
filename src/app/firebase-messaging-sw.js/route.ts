@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET() {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '';

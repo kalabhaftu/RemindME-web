@@ -58,7 +58,7 @@ export default function SettingsPage() {
         }
 
         const { requestFcmToken } = await import('@/lib/firebase-client')
-        const token = await requestFcmToken()
+        const token = await requestFcmToken(reg)
         if (token) {
           const { data: { user } } = await supabase.auth.getUser()
           if (user) {
