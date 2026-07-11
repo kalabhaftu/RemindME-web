@@ -120,12 +120,36 @@ export async function POST(
     }
     
     if (channelParam === 'push') {
-      // Real Web Push requires Firebase Cloud Messaging (FCM) service worker + VAPID keys.
-      // This is not yet configured. Return an honest error instead of a fake success.
-      return NextResponse.json(
-        { error: 'Push notifications are not yet configured. FCM setup (VAPID keys + service worker) is required.' },
-        { status: 501 }
-      );
+      // Fetch user's push token (FCM device token)
+      const { data: channelData, error: dbError } = await supabase
+        .from('notification_channels')
+        .select('encrypted_token')
+        .eq('user_id', user.id)
+        .eq('channel', 'push')
+        .single();
+        
+      if (dbError || !channelData?.encrypted_token) {
+        return NextResponse.json({ error: 'Push device token not found. Please sign in to the mobile app first to register your device.' }, { status: 400 });
+      }
+
+      const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+      if (!serviceAccount) {
+        return NextResponse.json({ error: 'FIREBASE_SERVICE_ACCOUNT is not configured on the web server.' }, { status: 500 });
+      }
+
+      try {
+        const { sendFcmNotification } = await import('@/lib/fcm');
+        await sendFcmNotification(
+          serviceAccount,
+          channelData.encrypted_token,
+          'Test Notification',
+          '🔔 This is a test push notification from your RemindME settings!'
+        );
+      } catch (err: any) {
+        return NextResponse.json({ error: 'FCM delivery failed: ' + err.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true });
     }
     
     if (channelParam === 'in_app') {
