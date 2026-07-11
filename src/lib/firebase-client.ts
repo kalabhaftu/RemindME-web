@@ -39,6 +39,16 @@ export async function requestFcmToken(registration?: ServiceWorkerRegistration):
       } catch (deleteErr) {
         console.warn('deleteToken also failed, user may need to clear site data', deleteErr)
       }
+      if (registration) {
+        try {
+          const existingSub = await registration.pushManager.getSubscription()
+          if (existingSub) {
+            await existingSub.unsubscribe()
+          }
+        } catch (subErr) {
+          console.warn('Failed to unsubscribe native push manager', subErr)
+        }
+      }
       token = await getToken(messaging, {
         vapidKey: VAPID_KEY,
         serviceWorkerRegistration: registration,
