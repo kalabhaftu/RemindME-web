@@ -72,7 +72,10 @@ export function AddReminderModal({ isOpen, onClose }: { isOpen: boolean, onClose
           .map(channel => ({
             channel,
             enabled: true,
-            lead_time: prefsMatrix[channel].lead_time
+            lead_time: prefsMatrix[channel].lead_time,
+            ...(prefsMatrix[channel].lead_time === 'custom' && prefsMatrix[channel].custom_time
+              ? { custom_time: prefsMatrix[channel].custom_time }
+              : {})
           }))
       }
 
