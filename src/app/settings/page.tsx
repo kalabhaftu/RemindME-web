@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut } from 'lucide-react'
 import Link from 'next/link'
@@ -32,18 +32,31 @@ export default function SettingsPage() {
   const [defaultLeadTime, setDefaultLeadTime] = useState('morning_of');
   const [defaultCustomTime, setDefaultCustomTime] = useState('09:00');
   
-  const supabase = createBrowserClient(
+  const supabaseRef = useRef(createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  ))
+  const registeredRef = useRef(false)
 
   useEffect(() => {
+    if (registeredRef.current) return
+    registeredRef.current = true
+
+    const supabase = supabaseRef.current
+
     // Register service worker + FCM
     const registerPush = async () => {
       if (!('serviceWorker' in navigator) || !('Notification' in window)) return
       try {
         const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
         await navigator.serviceWorker.ready
+
+        // Unsubscribe any stale push subscription from old VAPID key
+        const existingSub = await reg.pushManager.getSubscription()
+        if (existingSub) {
+          await existingSub.unsubscribe()
+        }
+
         const { requestFcmToken } = await import('@/lib/firebase-client')
         const token = await requestFcmToken()
         if (token) {
@@ -101,11 +114,12 @@ export default function SettingsPage() {
           })
       }
     })
-  }, [supabase])
+  }, [])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    const supabase = supabaseRef.current
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
@@ -194,7 +208,7 @@ export default function SettingsPage() {
       try {
         const res = await fetch('/api/account', { method: 'DELETE' })
         if (res.ok) {
-          await supabase.auth.signOut()
+          await supabaseRef.current.auth.signOut()
           router.push('/login')
         } else {
           const errorData = await res.json().catch(() => ({}))
@@ -215,7 +229,7 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold tracking-tight text-[rgba(255,255,255,0.92)] flex-1">Settings</h1>
         <button
           onClick={async () => {
-            await supabase.auth.signOut()
+            await supabaseRef.current.auth.signOut()
             router.push('/login')
           }}
           className="text-[rgba(255,255,255,0.6)] hover:text-white transition-colors flex items-center gap-2 text-sm"
