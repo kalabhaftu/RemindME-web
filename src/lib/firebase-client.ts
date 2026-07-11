@@ -14,7 +14,7 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 const messaging = typeof window !== 'undefined' ? getMessaging(app) : null
 
-const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY || ''
+const VAPID_KEY = (process.env.NEXT_PUBLIC_VAPID_KEY || '').trim()
 
 export async function requestFcmToken(registration?: ServiceWorkerRegistration): Promise<string | null> {
   if (!messaging) return null
@@ -26,6 +26,7 @@ export async function requestFcmToken(registration?: ServiceWorkerRegistration):
       return null
     }
 
+    console.log('FCM Debug: VAPID_KEY length:', VAPID_KEY.length, 'starts with:', VAPID_KEY.substring(0, 5))
     let token = null
     try {
       token = await getToken(messaging, {
@@ -57,6 +58,20 @@ export async function requestFcmToken(registration?: ServiceWorkerRegistration):
     return token
   } catch (err) {
     console.error('FCM token registration failed:', err)
+    
+    // NUCLEAR OPTION: If it still fails, completely unregister all Service Workers
+    // so the user can just refresh to get a clean slate.
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        for (const r of registrations) {
+          await r.unregister()
+        }
+        console.warn('Completely unregistered all Service Workers to fix corrupted state. Please refresh the page.')
+      } catch (e) {
+        console.error('Failed to unregister SW', e)
+      }
+    }
     return null
   }
 }
