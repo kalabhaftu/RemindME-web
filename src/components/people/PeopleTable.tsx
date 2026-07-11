@@ -86,6 +86,7 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
   const [sort, setSort] = useState<SortOption>('days_asc')
   const [search, setSearch] = useState('')
   const [filterRelationship, setFilterRelationship] = useState<string>('all')
+  const [filterGender, setFilterGender] = useState<string>('all')
 
   const rows = useMemo(() => {
     let data = toPersonRows(items)
@@ -96,8 +97,11 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
     if (filterRelationship !== 'all') {
       data = data.filter(r => r.relationship === filterRelationship)
     }
+    if (filterGender !== 'all') {
+      data = data.filter(r => r.gender === filterGender)
+    }
     return sortRows(data, sort)
-  }, [items, sort, search, filterRelationship])
+  }, [items, sort, search, filterRelationship, filterGender])
 
   const toggleSort = (option: SortOption) => {
     setSort(prev => (prev === option ? prev : option))
@@ -139,6 +143,16 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
+        <select
+          value={filterGender}
+          onChange={e => setFilterGender(e.target.value)}
+          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-3 py-2 text-sm text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60"
+        >
+          <option value="all">All genders</option>
+          {Object.entries(GENDER_LABELS).filter(([k]) => k !== 'unspecified').map(([key, { label }]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
         <div className="flex gap-1 flex-wrap">
           {([
             ['days_asc', 'Closest birthday'],
@@ -172,7 +186,7 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
               <th className="px-4 py-3"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Gender</span></th>
               <th className="px-4 py-3"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Zodiac</span></th>
               <th className="px-4 py-3"><SortHeader label="Relationship" active={sort === 'relationship'} direction="asc" onClick={() => toggleSort('relationship')} /></th>
-              <th className="px-4 py-3"><SortHeader label="Days to birthday" active={sort === 'days_asc'} direction="asc" onClick={() => toggleSort('days_asc')} /></th>
+              <th className="px-4 py-3"><SortHeader label="Next birthday" active={sort === 'days_asc'} direction="asc" onClick={() => toggleSort('days_asc')} /></th>
               <th className="px-4 py-3"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Birthday</span></th>
             </tr>
           </thead>
@@ -222,9 +236,9 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[13px]">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-[13px] text-[rgba(255,255,255,0.7)]">
                       <span className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.08)] rounded text-[rgba(255,255,255,0.92)]">{row.daysToBirthday}</span>
-                      <span className="text-[rgba(255,255,255,0.45)]">days</span>
+                      <span className="text-[rgba(255,255,255,0.45)]">days before birthday</span>
                     </span>
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">

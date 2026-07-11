@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Plus, Trash2, CheckSquare, User, RefreshCw, Gift, Copy } from 'lucide-react'
-import Link from 'next/link'
+import { AppShell } from '@/components/AppShell'
+import { Plus, Trash2, CheckSquare, User, RefreshCw, Gift, Copy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 type Template = {
@@ -101,21 +101,18 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] p-6 lg:p-12 font-sans">
-      <header className="max-w-2xl mx-auto flex items-center gap-4 mb-12">
-        <Link href="/" className="text-[rgba(255,255,255,0.6)] hover:text-white transition-colors">
-          <ArrowLeft size={24} />
-        </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-[rgba(255,255,255,0.92)] flex-1">Templates</h1>
+    <AppShell
+      title="Templates"
+      action={
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-4 py-2 rounded-[8px] text-sm font-medium transition-colors"
         >
           <Plus size={16} /> New
         </button>
-      </header>
-
-      <main className="max-w-2xl mx-auto space-y-3">
+      }
+    >
+      <div className="max-w-2xl mx-auto space-y-3">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6]" />
@@ -153,7 +150,7 @@ export default function TemplatesPage() {
             </div>
           ))
         )}
-      </main>
+      </div>
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0c14]/55 backdrop-blur-[18px]">
@@ -201,6 +198,6 @@ export default function TemplatesPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppShell>
   )
 }

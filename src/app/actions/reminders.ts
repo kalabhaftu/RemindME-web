@@ -22,6 +22,7 @@ const personDetailsSchema = z.object({
 
 const subscriptionDetailsSchema = z.object({
   logo_url: z.string().optional(),
+  logo_domain: z.string().optional(),
   billing_amount: z.number().optional(),
   billing_currency: z.string().optional(),
   renewal_date: z.string().optional(),

@@ -22,6 +22,7 @@ export default function NewSubscriptionPage() {
   const [cycle, setCycle] = useState<'weekly' | 'monthly' | 'yearly'>('monthly')
   const [notes, setNotes] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [logoDomain, setLogoDomain] = useState('')
   const [colorAccent, setColorAccent] = useState('')
   const [resolvingLogo, setResolvingLogo] = useState(false)
   const [ends, setEnds] = useState<'never' | 'after_occurrences' | 'on_date'>('never')
@@ -41,6 +42,7 @@ export default function NewSubscriptionPage() {
       if (res.ok) {
         const data = await res.json()
         if (data.logoUrl) setLogoUrl(data.logoUrl)
+        if (data.domain) setLogoDomain(data.domain)
         if (data.colorAccent) setColorAccent(data.colorAccent)
       }
     } catch { /* optional */ }
@@ -64,6 +66,7 @@ export default function NewSubscriptionPage() {
         color_accent: colorAccent || undefined,
         subscription_details: {
           logo_url: logoUrl || undefined,
+          logo_domain: logoDomain || undefined,
           billing_amount: billingAmount ? parseFloat(billingAmount) : undefined,
           billing_currency: billingCurrency,
           renewal_date: renewalDate,

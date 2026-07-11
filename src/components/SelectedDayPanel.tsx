@@ -1,10 +1,12 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { ReminderOccurrence } from '@/utils/computed-fields'
 import { getZodiacSign } from '@/utils/computed'
+import { getEditHref } from '@/lib/edit-links'
 import { format, isToday, isTomorrow } from 'date-fns'
-import { Circle, BellRing, Edit2, CheckCircle2, X } from 'lucide-react'
+import { Circle, Edit2, CheckCircle2, X } from 'lucide-react'
 
 interface SelectedDayPanelProps {
   date: Date
@@ -87,7 +89,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
                 <h3 className="font-medium text-[rgba(255,255,255,0.92)] text-[14px] leading-[1.5]">{occ.item.name}</h3>
                 {renderItemDetails(occ)}
               </div>
-              <div className="flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 {occ.item.category === 'task' && occ.status !== 'completed-past' && (
                   <button 
                     onClick={() => onMarkDone(occ.item.id, format(occ.date, 'yyyy-MM-dd'))} 
@@ -100,6 +102,13 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
                 {occ.status === 'completed-past' && (
                   <CheckCircle2 size={18} className="text-[#34D399]" />
                 )}
+                <Link
+                  href={getEditHref(occ.item)}
+                  className="text-[rgba(255,255,255,0.38)] hover:text-white transition-colors"
+                  title="Edit"
+                >
+                  <Edit2 size={18} />
+                </Link>
               </div>
             </div>
           ))
