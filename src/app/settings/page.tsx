@@ -63,7 +63,7 @@ export default function SettingsPage() {
     registerPush()
 
     // Load delivery logs
-    supabase.from('delivery_log').select('*').order('created_at', { ascending: false }).limit(10)
+    supabase.from('delivery_log').select('*').order('scheduled_for', { ascending: false }).limit(10)
       .then(({ data }) => {
         if (data) setLogs(data)
       })
