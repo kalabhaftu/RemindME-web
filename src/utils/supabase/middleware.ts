@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -26,6 +27,18 @@ export async function updateSession(request: NextRequest) {
       },
     }
   )
+
+  const authHeader = request.headers.get('authorization')
+
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const anonClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data } = await anonClient.auth.getUser(token)
+    if (data?.user) return supabaseResponse
+  }
 
   const {
     data: { user },
