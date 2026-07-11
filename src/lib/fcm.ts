@@ -30,14 +30,23 @@ function pemToDer(pem: string): ArrayBuffer {
 }
 
 function parseServiceAccount(str: string): any {
+  let clean = str.trim()
+  if (clean.length > 1 &&
+      ((clean[0] === "'" && clean[clean.length - 1] === "'") ||
+       (clean[0] === '"' && clean[clean.length - 1] === '"'))) {
+    clean = clean.slice(1, -1)
+  }
   try {
-    return JSON.parse(str);
+    return JSON.parse(clean)
+  } catch {}
+  const noNewlines = clean.replace(/[\r\n]+/g, ' ')
+  try {
+    return JSON.parse(noNewlines)
   } catch {
-    const normalized = str
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .replace(/\n/g, '\\n');
-    return JSON.parse(normalized);
+    throw new Error(
+      'Failed to parse FIREBASE_SERVICE_ACCOUNT. Verify the env var is valid JSON. ' +
+      `Raw length: ${clean.length}`
+    )
   }
 }
 

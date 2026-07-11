@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -28,18 +27,6 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const authHeader = request.headers.get('authorization')
-
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
-    const anonClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const { data } = await anonClient.auth.getUser(token)
-    if (data?.user) return supabaseResponse
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -47,11 +34,9 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/api')
   ) {
-    if (request.nextUrl.pathname.startsWith('/api')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
