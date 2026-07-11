@@ -154,6 +154,7 @@ export default function SettingsPage() {
       // Upsert user settings (synced globally)
       const { error: settingsError } = await supabase.from('user_settings').upsert({
         user_id: user.id,
+        timezone,
         nudge_delay_hours: nudgeDelayHours,
         default_channels: defaultChannels,
         default_lead_time: defaultLeadTime,
@@ -309,6 +310,30 @@ export default function SettingsPage() {
               </button>
             </form>
           )}
+        </section>
+
+        {/* Timezone */}
+        <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6">
+          <h2 className="text-lg font-medium text-white mb-2">Timezone</h2>
+          <p className="text-sm text-[rgba(255,255,255,0.6)] mb-4">
+            Used to resolve reminder times. Auto-detected from your browser.
+          </p>
+          <select
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-all appearance-none"
+          >
+            {Intl.supportedValuesOf('timeZone').map(tz => (
+              <option key={tz} value={tz}>{tz}</option>
+            ))}
+          </select>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="mt-4 bg-[#3B82F6] hover:bg-[#2563EB] text-white px-6 py-3 rounded-[8px] font-medium transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : 'Save Timezone'}
+          </button>
         </section>
 
         {/* Global Notification Defaults */}
