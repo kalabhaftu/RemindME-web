@@ -30,7 +30,11 @@ function pemToDer(pem: string): ArrayBuffer {
 }
 
 export async function getAccessToken(serviceAccountJsonStr: string): Promise<string> {
-  const sa = JSON.parse(serviceAccountJsonStr);
+  const normalized = serviceAccountJsonStr
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\n/g, '\\n');
+  const sa = JSON.parse(normalized);
   const der = pemToDer(sa.private_key);
   
   const key = await crypto.subtle.importKey(
@@ -93,7 +97,11 @@ export async function sendFcmNotification(
   body: string,
   data?: Record<string, string>
 ): Promise<void> {
-  const sa = JSON.parse(serviceAccountJsonStr);
+  const normalized = serviceAccountJsonStr
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\n/g, '\\n');
+  const sa = JSON.parse(normalized);
   const accessToken = await getAccessToken(serviceAccountJsonStr);
   const projectId = sa.project_id;
 

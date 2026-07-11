@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Save, Send, Trash2, ShieldAlert } from 'lucide-react'
+import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -328,13 +328,13 @@ export default function SettingsPage() {
               onClick={() => testChannel('email')}
               className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
             >
-              <Send size={18} /> Email
+              <Mail size={18} /> Email
             </button>
             <button
               onClick={() => testChannel('push')}
               className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
             >
-              <Send size={18} /> Push
+              <Bell size={18} /> Push
             </button>
             <button
               onClick={() => testChannel('telegram')}

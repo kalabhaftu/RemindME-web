@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function POST(
   request: Request,
@@ -8,23 +7,9 @@ export async function POST(
 ) {
   try {
     const channelParam = (await params).channel;
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll() {},
-        },
-      }
-    );
+    const { user, supabase } = await getAuthenticatedUser(request);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -108,7 +93,7 @@ export async function POST(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: '✅ This is a test notification from your RemindME settings! Your bot is correctly configured.',
+          text: 'This is a test notification from your RemindME settings! Your bot is correctly configured.',
         })
       });
       
@@ -143,7 +128,7 @@ export async function POST(
           serviceAccount,
           channelData.encrypted_token,
           'Test Notification',
-          '🔔 This is a test push notification from your RemindME settings!'
+          'This is a test push notification from your RemindME settings!'
         );
       } catch (err: any) {
         return NextResponse.json({ error: 'FCM delivery failed: ' + err.message }, { status: 500 });
