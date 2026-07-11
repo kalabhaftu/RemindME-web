@@ -36,19 +36,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid Telegram bot token format' }, { status: 400 });
     }
 
+    // Validate token with Telegram and get bot info
+    const tgRes = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    if (!tgRes.ok) {
+      return NextResponse.json({ error: 'Invalid Telegram bot token — could not connect to your bot.' }, { status: 400 });
+    }
+    const tgData = await tgRes.json();
+    const botUsername = tgData.result?.username as string | undefined;
+
     const encryptedToken = encrypt(token);
 
     const { error } = await supabase.from('notification_channels').upsert({
       user_id: user.id,
       channel: 'telegram',
-      encrypted_token: encryptedToken
+      encrypted_token: encryptedToken,
+      label: botUsername ? `@${botUsername}` : null,
     }, { onConflict: 'user_id,channel' });
 
     if (error) {
       return NextResponse.json({ error: 'Failed to save token' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, botUsername });
   } catch (error: any) {
     console.error('Save telegram token error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -116,7 +125,7 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabase
       .from('notification_channels')
-      .select('encrypted_token')
+      .select('encrypted_token, label')
       .eq('user_id', user.id)
       .eq('channel', 'telegram')
       .single();
@@ -125,16 +134,32 @@ export async function GET(request: Request) {
       return NextResponse.json({ hasToken: false });
     }
 
-    // Decrypt and mask
+    // Decrypt, mask and fetch bot username from metadata
     try {
       const { decrypt, maskToken } = await import('@/lib/encryption');
       const decrypted = decrypt(data.encrypted_token);
       const masked = maskToken(decrypted);
-      return NextResponse.json({ hasToken: true, maskedToken: masked });
+
+      let botUsername: string | null = null;
+
+      // label is stored as "@username" — strip the @ for the URL
+      if (data.label) {
+        botUsername = data.label.replace(/^@/, '');
+      } else {
+        // Fallback: re-verify live with Telegram
+        try {
+          const tgRes = await fetch(`https://api.telegram.org/bot${decrypted}/getMe`);
+          if (tgRes.ok) {
+            const tgData = await tgRes.json();
+            botUsername = tgData.result?.username ?? null;
+          }
+        } catch {}
+      }
+
+      return NextResponse.json({ hasToken: true, maskedToken: masked, botUsername });
     } catch (e) {
       console.error('Decryption error:', e);
-      // If decryption fails (e.g. legacy unencrypted text), we just say it has a token but can't mask safely
-      return NextResponse.json({ hasToken: true, maskedToken: '********' });
+      return NextResponse.json({ hasToken: true, maskedToken: '********', botUsername: null });
     }
   } catch (error: any) {
     console.error('Get telegram token error:', error);

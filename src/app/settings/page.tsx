@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [telegramToken, setTelegramToken] = useState('')
   const [hasTelegramToken, setHasTelegramToken] = useState(false)
   const [maskedTelegramToken, setMaskedTelegramToken] = useState('')
+  const [botUsername, setBotUsername] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [logs, setLogs] = useState<Record<string, any>[]>([])
   const [nudgeDelayHours, setNudgeDelayHours] = useState(4)
@@ -50,6 +51,7 @@ export default function SettingsPage() {
         if (data.hasToken) {
           setHasTelegramToken(true)
           setMaskedTelegramToken(data.maskedToken)
+          setBotUsername(data.botUsername ?? null)
         }
       })
 
@@ -90,6 +92,8 @@ export default function SettingsPage() {
           const err = await res.json();
           throw new Error(err.error || 'Failed to save telegram token');
         }
+        const saveData = await res.json();
+        setBotUsername(saveData.botUsername ?? null);
         
         // Refresh token status
         const refreshRes = await fetch('/api/settings/telegram');
@@ -143,6 +147,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error('Failed to delete token');
       setHasTelegramToken(false);
       setMaskedTelegramToken('');
+      setBotUsername(null);
       setTelegramToken('');
       showToast('Telegram token deleted', 'success');
     } catch (err: any) {
@@ -192,9 +197,20 @@ export default function SettingsPage() {
           {hasTelegramToken ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-lg">
-                <div>
-                  <div className="text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-1">Saved Token</div>
+                <div className="space-y-1">
+                  <div className="text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)]">Saved Token</div>
                   <div className="font-mono text-sm text-[rgba(255,255,255,0.92)]">{maskedTelegramToken}</div>
+                  {botUsername && (
+                    <a
+                      href={`https://t.me/${botUsername}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-[#3B82F6] hover:underline text-sm font-medium mt-1"
+                    >
+                      <span>@{botUsername}</span>
+                      <span className="text-[rgba(255,255,255,0.38)] text-xs">↗</span>
+                    </a>
+                  )}
                 </div>
                 <button
                   type="button"

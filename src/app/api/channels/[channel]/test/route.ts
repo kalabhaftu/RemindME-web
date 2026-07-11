@@ -120,8 +120,12 @@ export async function POST(
     }
     
     if (channelParam === 'push') {
-      // Push requires FCM setup
-      return NextResponse.json({ success: true, message: 'Push test simulation successful' });
+      // Real Web Push requires Firebase Cloud Messaging (FCM) service worker + VAPID keys.
+      // This is not yet configured. Return an honest error instead of a fake success.
+      return NextResponse.json(
+        { error: 'Push notifications are not yet configured. FCM setup (VAPID keys + service worker) is required.' },
+        { status: 501 }
+      );
     }
     
     if (channelParam === 'in_app') {
