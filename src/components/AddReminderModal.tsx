@@ -20,6 +20,29 @@ export function AddReminderModal({ isOpen, onClose }: { isOpen: boolean, onClose
   const [billingCurrency, setBillingCurrency] = useState('USD')
   const [renewalDate, setRenewalDate] = useState('')
   const [cycle, setCycle] = useState('monthly')
+  const [logoUrl, setLogoUrl] = useState('')
+  const [resolvingLogo, setResolvingLogo] = useState(false)
+
+  // Auto-fetch logo on name blur for subscriptions
+  const handleSubscriptionNameBlur = async () => {
+    if (!name.trim() || category !== 'subscription') return
+    setResolvingLogo(true)
+    try {
+      const res = await fetch('/api/logo-resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: name.trim() })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.logoUrl) setLogoUrl(data.logoUrl)
+      }
+    } catch {
+      // Silently fail — logo is optional
+    } finally {
+      setResolvingLogo(false)
+    }
+  }
   
   // Task
   const [dueAt, setDueAt] = useState('')
@@ -90,7 +113,8 @@ export function AddReminderModal({ isOpen, onClose }: { isOpen: boolean, onClose
           billing_amount: billingAmount ? parseFloat(billingAmount) : undefined,
           billing_currency: billingCurrency,
           renewal_date: renewalDate,
-          cycle
+          cycle,
+          logo_url: logoUrl || undefined
         }
       } else if (category === 'task') {
         payload.task_details = {
@@ -137,7 +161,7 @@ export function AddReminderModal({ isOpen, onClose }: { isOpen: boolean, onClose
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setCategory(c.id as any)}
+                onClick={() => { setCategory(c.id as any); if (c.id !== 'subscription') setLogoUrl(''); }}
                 className={`flex-1 flex flex-col items-center py-2 rounded-[8px] text-[12px] font-medium transition-all uppercase tracking-[0.02em] ${
                   category === c.id 
                     ? 'bg-[#3B82F6] text-white' 
@@ -157,6 +181,7 @@ export function AddReminderModal({ isOpen, onClose }: { isOpen: boolean, onClose
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onBlur={handleSubscriptionNameBlur}
               className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.38)] focus:outline-none focus:border-[#3B82F6]/60 transition-all"
               placeholder="e.g., Mom's Birthday, Netflix Bill..."
             />
@@ -179,6 +204,15 @@ export function AddReminderModal({ isOpen, onClose }: { isOpen: boolean, onClose
 
           {category === 'subscription' && (
             <div className="space-y-4">
+              {resolvingLogo && (
+                <div className="text-xs text-[rgba(255,255,255,0.38)]">Resolving logo…</div>
+              )}
+              {logoUrl && !resolvingLogo && (
+                <div className="flex items-center gap-3 p-3 bg-[rgba(0,0,0,0.2)] rounded-lg">
+                  <img src={logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain" />
+                  <span className="text-xs text-[rgba(255,255,255,0.6)]">Logo auto-fetched</span>
+                </div>
+              )}
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Renewal Date</label>
                 <input

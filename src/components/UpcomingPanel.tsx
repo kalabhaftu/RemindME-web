@@ -35,7 +35,7 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone }: Up
       const s = item.subscription_details[0]
       return (
         <div className="flex items-center gap-4 mt-2 text-[12px] font-mono text-[rgba(255,255,255,0.6)]">
-          {s.logo_url && <img src={s.logo_url} alt="" className="w-4 h-4 rounded-full" />}
+          {s.logo_url && <img src={s.logo_url} alt="" className="w-4 h-4 rounded object-contain bg-[rgba(255,255,255,0.06)]" />}
           <span>{s.billing_currency} {s.billing_amount} / {s.cycle}</span>
         </div>
       )
