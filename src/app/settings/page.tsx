@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell } from 'lucide-react'
+import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -38,6 +38,38 @@ export default function SettingsPage() {
   )
 
   useEffect(() => {
+    // Register service worker + FCM
+    const registerPush = async () => {
+      if (!('serviceWorker' in navigator) || !('Notification' in window)) return
+      try {
+        const swUrl = '/firebase-messaging-sw.js?' + new URLSearchParams({
+          apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+          messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+          appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+        }).toString()
+        const reg = await navigator.serviceWorker.register(swUrl, { scope: '/' })
+        await navigator.serviceWorker.ready
+        const { requestFcmToken } = await import('@/lib/firebase-client')
+        const token = await requestFcmToken()
+        if (token) {
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            await supabase.from('notification_channels').upsert({
+              user_id: user.id,
+              channel: 'push',
+              encrypted_token: token,
+            }, { onConflict: 'user_id,channel' })
+          }
+        }
+      } catch (err) {
+        console.warn('FCM registration failed:', err)
+      }
+    }
+    registerPush()
+
     // Load delivery logs
     supabase.from('delivery_log').select('*').order('created_at', { ascending: false }).limit(10)
       .then(({ data }) => {
@@ -188,7 +220,16 @@ export default function SettingsPage() {
         <Link href="/" className="text-[rgba(255,255,255,0.6)] hover:text-white transition-colors">
           <ArrowLeft size={24} />
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-[rgba(255,255,255,0.92)]">Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[rgba(255,255,255,0.92)] flex-1">Settings</h1>
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut()
+            router.push('/login')
+          }}
+          className="text-[rgba(255,255,255,0.6)] hover:text-white transition-colors flex items-center gap-2 text-sm"
+        >
+          <LogOut size={18} /> Sign Out
+        </button>
       </header>
 
       <main className="max-w-2xl mx-auto space-y-8">

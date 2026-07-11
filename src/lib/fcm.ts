@@ -29,12 +29,20 @@ function pemToDer(pem: string): ArrayBuffer {
   return buffer;
 }
 
+function parseServiceAccount(str: string): any {
+  try {
+    return JSON.parse(str);
+  } catch {
+    const normalized = str
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\n/g, '\\n');
+    return JSON.parse(normalized);
+  }
+}
+
 export async function getAccessToken(serviceAccountJsonStr: string): Promise<string> {
-  const normalized = serviceAccountJsonStr
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/\n/g, '\\n');
-  const sa = JSON.parse(normalized);
+  const sa = parseServiceAccount(serviceAccountJsonStr);
   const der = pemToDer(sa.private_key);
   
   const key = await crypto.subtle.importKey(
@@ -97,11 +105,7 @@ export async function sendFcmNotification(
   body: string,
   data?: Record<string, string>
 ): Promise<void> {
-  const normalized = serviceAccountJsonStr
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/\n/g, '\\n');
-  const sa = JSON.parse(normalized);
+  const sa = parseServiceAccount(serviceAccountJsonStr);
   const accessToken = await getAccessToken(serviceAccountJsonStr);
   const projectId = sa.project_id;
 

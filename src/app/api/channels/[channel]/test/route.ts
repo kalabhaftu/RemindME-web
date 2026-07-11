@@ -135,7 +135,10 @@ export async function POST(
         );
         const failed = results.filter((r) => r.status === 'rejected');
         if (failed.length > 0) {
-          console.error('FCM delivery failures:', failed);
+          failed.forEach((r: any) => console.error('FCM delivery failure:', r.reason));
+          if (failed.length === results.length) {
+            return NextResponse.json({ error: 'All push deliveries failed', deviceCount: channelData.length }, { status: 500 });
+          }
         }
       } catch (err: any) {
         return NextResponse.json({ error: 'FCM delivery failed: ' + err.message }, { status: 500 });
