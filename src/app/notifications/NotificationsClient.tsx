@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { format, addDays, isToday, isTomorrow, startOfDay, endOfDay } from 'date-fns'
 import { Bell, CheckCheck } from 'lucide-react'
 import { AppShell } from '@/components/AppShell'
+import { EmptyState } from '@/components/EmptyState'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { generateOccurrences, ReminderOccurrence } from '@/utils/computed-fields'
 import { getEditHref } from '@/lib/edit-links'
@@ -160,9 +161,8 @@ export function NotificationsClient({
               occurrenceGroups.tomorrow.length === 0 &&
               occurrenceGroups.next3.length === 0 &&
               occurrenceGroups.next7.length === 0 && (
-              <div className="p-12 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px]">
-                <Bell size={32} className="mx-auto mb-4 text-[rgba(255,255,255,0.1)]" />
-                <p className="text-[rgba(255,255,255,0.38)] text-sm">Nothing coming up in the next week.</p>
+              <div className="p-12 border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] rounded-[12px]">
+                <EmptyState iconPath="/icons/3d/empty_notifications.png" message="No in-app notifications yet." />
               </div>
             )}
           </div>
@@ -207,8 +207,8 @@ export function NotificationsClient({
           <div>
             <OccurrenceSection title="Missed reminders" items={occurrenceGroups.missed} />
             {occurrenceGroups.missed.length === 0 && (
-              <div className="p-12 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px]">
-                <p className="text-[rgba(255,255,255,0.38)] text-sm">No missed reminders.</p>
+              <div className="p-12 border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] rounded-[12px]">
+                <EmptyState iconPath="/icons/3d/empty_notifications.png" message="No missed reminders." />
               </div>
             )}
           </div>

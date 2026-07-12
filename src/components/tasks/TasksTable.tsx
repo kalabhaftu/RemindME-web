@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns'
 import { CheckSquare, Circle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
+import { EmptyState } from '@/components/EmptyState'
 import * as Phosphor from '@phosphor-icons/react'
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -43,13 +44,10 @@ export function TasksTable({
 
   if (items.filter(i => i.category === 'task').length === 0) {
     return (
-      <div className="p-16 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px]">
-        <CheckSquare size={40} className="mx-auto text-[rgba(255,255,255,0.1)] mb-4" />
-        <h3 className="text-[15px] font-medium text-[rgba(255,255,255,0.6)] mb-2">No tasks yet</h3>
-        <Link href="/tasks/new" className="inline-flex items-center gap-2 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-5 py-2.5 rounded-[8px] text-sm font-medium transition-colors">
-          Add task
-        </Link>
-      </div>
+      <EmptyState
+        iconPath="/icons/3d/empty_tasks.png"
+        message="No tasks yet. Create a task to get started."
+      />
     )
   }
 
@@ -66,13 +64,15 @@ export function TasksTable({
           const freq = item.recurrence_rules?.[0]?.frequency
           return (
             <div key={item.id} className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] flex items-center gap-4 hover:bg-[rgba(255,255,255,0.06)] transition-colors group">
-              <div className="w-9 h-9 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
-                <Icon size={18} className="text-[#3B82F6]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-medium truncate">{item.name}</div>
-                <div className="text-[12px] font-mono text-[rgba(255,255,255,0.45)] mt-0.5">{dueStr}{freq && freq !== 'none' ? ` · ${freq}` : ''}</div>
-              </div>
+              <Link href={`/tasks/${item.id}`} className="flex items-center gap-4 flex-1 min-w-0 group-hover:text-[#5B9CFF] transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
+                  <Icon size={18} className="text-[#3B82F6]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-medium truncate text-[rgba(255,255,255,0.92)]">{item.name}</div>
+                  <div className="text-[12px] font-mono text-[rgba(255,255,255,0.45)] mt-0.5">{dueStr}{freq && freq !== 'none' ? ` · ${freq}` : ''}</div>
+                </div>
+              </Link>
               {onMarkDone && t?.due_at && (
                 <button
                   onClick={() => onMarkDone(item.id, format(parseISO(t.due_at!), 'yyyy-MM-dd'))}

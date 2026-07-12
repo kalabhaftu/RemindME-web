@@ -21,6 +21,8 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
   const [cycle, setCycle] = useState<'weekly' | 'monthly' | 'yearly'>('monthly')
   const [notes, setNotes] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [logoDomain, setLogoDomain] = useState('')
+  const [colorAccent, setColorAccent] = useState('')
   const [ends, setEnds] = useState<'never' | 'after_occurrences' | 'on_date'>('never')
   const [endsValue, setEndsValue] = useState('')
   const [loading, setLoading] = useState(false)
@@ -43,6 +45,8 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
           setBillingCurrency(s.billing_currency ?? 'USD')
           setCycle((s.cycle as 'weekly' | 'monthly' | 'yearly') ?? 'monthly')
           setLogoUrl(s.logo_url ?? '')
+          setLogoDomain(s.logo_domain ?? '')
+          setColorAccent(data.color_accent ?? '')
         }
         const rr = data.recurrence_rules?.[0]
         if (rr) {
@@ -67,8 +71,10 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
       await updateReminder(item.id, {
         name: name.trim(),
         notes: notes || undefined,
+        color_accent: colorAccent || undefined,
         subscription_details: {
           logo_url: logoUrl || undefined,
+          logo_domain: logoDomain || undefined,
           billing_amount: billingAmount ? parseFloat(billingAmount) : undefined,
           billing_currency: billingCurrency,
           renewal_date: renewalDate,

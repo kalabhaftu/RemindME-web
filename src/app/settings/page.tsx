@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [logs, setLogs] = useState<Record<string, any>[]>([])
   const [nudgeDelayHours, setNudgeDelayHours] = useState(4)
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
@@ -112,6 +113,7 @@ export default function SettingsPage() {
     // Load user settings from Supabase (overrides local storage)
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setCurrentUser(user)
         supabase.from('user_settings').select('*').eq('user_id', user.id).single()
           .then(({ data }) => {
             if (data) {
@@ -565,25 +567,43 @@ export default function SettingsPage() {
           )}
         </section>
 
-        {/* Account */}
+        {/* Account & Sessions */}
         <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6">
-          <h2 className="text-lg font-medium text-white mb-2">Account</h2>
+          <h2 className="text-lg font-medium text-white mb-2">Account & Sessions</h2>
           <p className="text-sm text-[rgba(255,255,255,0.6)] mb-6">
-            Export your data or sign out on all devices.
+            Manage your account data and active sessions.
           </p>
-          <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={exportData}
-              className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
-            >
-              <Download size={18} /> Export Data
-            </button>
-            <button
-              onClick={logoutAllDevices}
-              className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
-            >
-              <LogOut size={18} /> Sign Out All Devices
-            </button>
+
+          <div className="space-y-6">
+            {currentUser && (
+              <div className="flex items-center justify-between p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] rounded-lg">
+                <div>
+                  <div className="text-[12px] uppercase tracking-[0.02em] text-[rgba(255,255,255,0.6)]">Current Session</div>
+                  <div className="font-medium text-sm mt-1">{currentUser.email}</div>
+                  <div className="text-xs text-[rgba(255,255,255,0.45)] mt-1">
+                    Last signed in: {currentUser.last_sign_in_at ? new Date(currentUser.last_sign_in_at).toLocaleString() : 'Unknown'}
+                  </div>
+                </div>
+                <div className="px-3 py-1 bg-[rgba(34,197,94,0.15)] text-[#34D399] rounded text-xs font-medium">
+                  Active now
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4 flex-wrap">
+              <button
+                onClick={exportData}
+                className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
+              >
+                <Download size={18} /> Export Data
+              </button>
+              <button
+                onClick={logoutAllDevices}
+                className="bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-white px-6 py-3 rounded-[8px] font-medium transition-colors flex items-center gap-2"
+              >
+                <LogOut size={18} /> Sign Out All Devices
+              </button>
+            </div>
           </div>
         </section>
 

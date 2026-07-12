@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { AppShell } from '@/components/AppShell'
+import { EmptyState } from '@/components/EmptyState'
 import { Plus, Trash2, CheckSquare, User, RefreshCw, Gift, Copy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -118,8 +119,8 @@ export default function TemplatesPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6]" />
           </div>
         ) : templates.length === 0 ? (
-          <div className="p-12 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px]">
-            <p className="text-[rgba(255,255,255,0.38)] text-sm">No templates yet. Create one to quickly add reminders.</p>
+          <div className="col-span-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] rounded-[12px]">
+            <EmptyState iconPath="/icons/3d/empty_templates.png" message="No templates yet. Create one to quickly add reminders." />
           </div>
         ) : (
           templates.map(t => (

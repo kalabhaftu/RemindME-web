@@ -21,6 +21,8 @@ export default function NewPersonPage() {
   const [gender, setGender] = useState('unspecified')
   const [relationship, setRelationship] = useState('friend')
   const [notes, setNotes] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,6 +43,7 @@ export default function NewPersonPage() {
           birthdate,
           gender: gender as 'male' | 'female' | 'nonbinary' | 'unspecified',
           relationship: relationship as 'family' | 'partner' | 'friend' | 'colleague' | 'other',
+          avatar_url: avatarUrl || undefined,
         },
         recurrence_rules: {
           frequency: 'yearly',
@@ -75,6 +78,48 @@ export default function NewPersonPage() {
 
           <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
             <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Basic info</h3>
+
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden shrink-0">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[rgba(255,255,255,0.2)] text-xs">No image</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Avatar</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingAvatar}
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingAvatar(true);
+                    try {
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      const res = await fetch('/api/cloudinary/upload', {
+                        method: 'POST',
+                        body: formData,
+                      });
+                      if (res.ok) {
+                        const data = await res.json();
+                        if (data.url) setAvatarUrl(data.url);
+                      } else {
+                        setError('Failed to upload image');
+                      }
+                    } catch (err) {
+                      setError('Error uploading image');
+                    } finally {
+                      setUploadingAvatar(false);
+                    }
+                  }}
+                  className="block w-full text-sm text-[rgba(255,255,255,0.6)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-medium file:bg-[rgba(255,255,255,0.05)] file:text-white hover:file:bg-[rgba(255,255,255,0.1)] transition-colors"
+                />
+              </div>
+            </div>
 
             <div>
               <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Full name *</label>

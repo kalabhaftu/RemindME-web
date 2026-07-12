@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { format, parseISO } from 'date-fns'
 import { Gift, Check } from 'lucide-react'
-import { AppShell } from '@/components/AppShell'
+import { AppShell, AddButton } from '@/components/AppShell'
 import { createReminder, deleteReminder } from '@/app/actions/reminders'
 import { useRouter } from 'next/navigation'
 
@@ -141,7 +141,7 @@ export default function HolidaysPage() {
   const subscribedKeys = new Set(subscribed.map(s => s.holiday_key))
 
   return (
-    <AppShell title="Holidays">
+    <AppShell title="Holidays" action={<AddButton href="/holidays/new" label="Custom" />}>
       <div className="mb-6">
         <h2 className="text-[22px] font-semibold tracking-tight">Holiday Subscriptions</h2>
         <p className="text-[13px] text-[rgba(255,255,255,0.45)] mt-1">

@@ -18,6 +18,7 @@ const personDetailsSchema = z.object({
   birthdate: z.string().optional(), // YYYY-MM-DD
   relationship: z.enum(['family', 'partner', 'friend', 'colleague', 'other']).optional(),
   gender: z.enum(['male', 'female', 'nonbinary', 'unspecified']).optional(),
+  avatar_url: z.string().optional(),
 })
 
 const subscriptionDetailsSchema = z.object({

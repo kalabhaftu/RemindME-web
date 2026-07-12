@@ -9,6 +9,7 @@ import { TagPill } from '@/components/ui/TagPill'
 import { GENDER_LABELS, RELATIONSHIP_LABELS, ZODIAC_META, SortOption } from '@/lib/constants'
 import { cn } from '@/lib/cn'
 import Link from 'next/link'
+import { EmptyState } from '@/components/EmptyState'
 
 type PersonRow = {
   id: string
@@ -109,14 +110,10 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
 
   if (toPersonRows(items).length === 0) {
     return (
-      <div className="p-16 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px]">
-        <User size={40} className="mx-auto text-[rgba(255,255,255,0.1)] mb-4" />
-        <h3 className="text-[15px] font-medium text-[rgba(255,255,255,0.6)] mb-2">No people yet</h3>
-        <p className="text-[13px] text-[rgba(255,255,255,0.38)] mb-6">Track birthdays, ages, and zodiac signs for everyone you care about.</p>
-        <Link href="/people/new" className="inline-flex items-center gap-2 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-5 py-2.5 rounded-[8px] text-sm font-medium transition-colors">
-          Add a person
-        </Link>
-      </div>
+      <EmptyState
+        iconPath="/icons/3d/empty_people.png"
+        message="No people yet. Track birthdays, ages, and zodiac signs for everyone you care about."
+      />
     )
   }
 

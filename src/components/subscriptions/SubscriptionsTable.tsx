@@ -5,6 +5,7 @@ import { format, parseISO, differenceInDays, startOfDay } from 'date-fns'
 import { CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
+import { EmptyState } from '@/components/EmptyState'
 
 function daysUntilRenewal(dateStr: string): number {
   const today = startOfDay(new Date())
@@ -33,14 +34,10 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
 
   if (items.filter(i => i.category === 'subscription').length === 0) {
     return (
-      <div className="p-16 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px]">
-        <CreditCard size={40} className="mx-auto text-[rgba(255,255,255,0.1)] mb-4" />
-        <h3 className="text-[15px] font-medium text-[rgba(255,255,255,0.6)] mb-2">No subscriptions yet</h3>
-        <p className="text-[13px] text-[rgba(255,255,255,0.38)] mb-6">Track renewals for Netflix, Claude, Spotify, and more.</p>
-        <Link href="/subscriptions/new" className="inline-flex items-center gap-2 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-5 py-2.5 rounded-[8px] text-sm font-medium transition-colors">
-          Add subscription
-        </Link>
-      </div>
+      <EmptyState
+        iconPath="/icons/3d/empty_subscriptions.png"
+        message="No subscriptions yet. Track renewals for Netflix, Claude, Spotify, and more."
+      />
     )
   }
 
@@ -71,16 +68,16 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
               return (
                 <tr key={item.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.04)] transition-colors">
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                    <Link href={`/subscriptions/${item.id}`} className="flex items-center gap-3 group-hover:text-[#5B9CFF] transition-colors">
                       {s.logo_url ? (
                         <img src={s.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-[rgba(255,255,255,0.06)]" />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
                           <CreditCard size={14} className="text-[#3B82F6]" />
                         </div>
                       )}
-                      <span className="text-[14px] font-medium">{item.name}</span>
-                    </div>
+                      <span className="text-[14px] font-medium text-[rgba(255,255,255,0.92)]">{item.name}</span>
+                    </Link>
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
                     {format(parseISO(s.renewal_date), 'MMM d, yyyy')}
