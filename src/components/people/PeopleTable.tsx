@@ -25,19 +25,19 @@ type PersonRow = {
 
 function toPersonRows(items: ReminderItemWithDetails[]): PersonRow[] {
   return items
-    .filter(i => i.category === 'person' && i.person_details?.[0]?.birthdate)
+    .filter(i => i.category === 'person')
     .map(i => {
-      const p = i.person_details![0]
-      const birthdate = p.birthdate!
+      const p = i.person_details?.[0]
+      const birthdate = p?.birthdate
       return {
         id: i.id,
         name: i.name,
-        birthdate,
-        gender: p.gender ?? 'unspecified',
-        relationship: p.relationship ?? 'other',
-        age: getAge(birthdate),
-        zodiac: getZodiacSign(birthdate),
-        daysToBirthday: getDaysUntilBirthday(birthdate),
+        birthdate: birthdate ?? '',
+        gender: p?.gender ?? 'unspecified',
+        relationship: p?.relationship ?? 'other',
+        age: birthdate ? getAge(birthdate) : 0,
+        zodiac: birthdate ? getZodiacSign(birthdate) : 'Unknown',
+        daysToBirthday: birthdate ? getDaysUntilBirthday(birthdate) : 9999,
         createdAt: i.created_at,
       }
     })
@@ -208,15 +208,19 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-3 min-w-[100px]">
-                      <span className="font-mono text-[13px] text-[rgba(255,255,255,0.7)] w-6">{row.age}</span>
-                      <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden max-w-[80px]">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#0EA5E9]"
-                          style={{ width: `${ageProgress}%` }}
-                        />
+                    {row.birthdate ? (
+                      <div className="flex items-center gap-3 min-w-[100px]">
+                        <span className="font-mono text-[13px] text-[rgba(255,255,255,0.7)] w-6">{row.age}</span>
+                        <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden max-w-[80px]">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#0EA5E9]"
+                            style={{ width: `${ageProgress}%` }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <TagPill color={gender.color}>{gender.label}</TagPill>
@@ -233,13 +237,17 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[13px] text-[rgba(255,255,255,0.7)]">
-                      <span className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.08)] rounded text-[rgba(255,255,255,0.92)]">{row.daysToBirthday}</span>
-                      <span className="text-[rgba(255,255,255,0.45)]">days before birthday</span>
-                    </span>
+                    {row.birthdate ? (
+                      <span className="inline-flex items-center gap-1.5 font-mono text-[13px] text-[rgba(255,255,255,0.7)]">
+                        <span className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.08)] rounded text-[rgba(255,255,255,0.92)]">{row.daysToBirthday}</span>
+                        <span className="text-[rgba(255,255,255,0.45)]">days</span>
+                      </span>
+                    ) : (
+                      <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
-                    {format(parseISO(row.birthdate), 'MMMM d, yyyy')}
+                    {row.birthdate ? format(parseISO(row.birthdate), 'MMMM d, yyyy') : '—'}
                   </td>
                 </tr>
               )

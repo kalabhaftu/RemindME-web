@@ -63,13 +63,12 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
           <tbody>
             {rows.map(item => {
               const s = item.subscription_details?.[0]
-              if (!s?.renewal_date) return null
-              const days = daysUntilRenewal(s.renewal_date)
+              const days = s?.renewal_date ? daysUntilRenewal(s.renewal_date) : null
               return (
                 <tr key={item.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.04)] transition-colors">
                   <td className="px-4 py-3">
                     <Link href={`/subscriptions/${item.id}`} className="flex items-center gap-3 group-hover:text-[#5B9CFF] transition-colors">
-                      {s.logo_url ? (
+                      {s?.logo_url ? (
                         <img src={s.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-[rgba(255,255,255,0.06)]" />
                       ) : (
                         <div className="w-8 h-8 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
@@ -80,15 +79,19 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
                     </Link>
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
-                    {format(parseISO(s.renewal_date), 'MMM d, yyyy')}
+                    {s?.renewal_date ? format(parseISO(s.renewal_date), 'MMM d, yyyy') : '—'}
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
-                    {s.billing_amount ? `${s.billing_currency ?? 'USD'} ${s.billing_amount}` : '—'}
+                    {s?.billing_amount ? `${s.billing_currency ?? 'USD'} ${s.billing_amount}` : '—'}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.08)] rounded font-mono text-[13px]">{days} days</span>
+                    {days !== null ? (
+                      <span className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.08)] rounded font-mono text-[13px]">{days} days</span>
+                    ) : (
+                      <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-[13px] capitalize text-[rgba(255,255,255,0.6)]">{s.cycle ?? 'monthly'}</td>
+                  <td className="px-4 py-3 text-[13px] capitalize text-[rgba(255,255,255,0.6)]">{s?.cycle ?? 'monthly'}</td>
                 </tr>
               )
             })}

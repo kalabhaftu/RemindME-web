@@ -13,6 +13,7 @@ export function EmptyState({ iconPath, message }: EmptyStateProps) {
           src={iconPath}
           alt="Empty state icon"
           fill
+          sizes="(max-width: 768px) 128px, 128px"
           className="object-contain"
         />
       </div>

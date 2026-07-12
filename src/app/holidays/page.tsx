@@ -187,7 +187,7 @@ export default function HolidaysPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {holidays.map(h => {
+          {holidays.filter((h, i, arr) => arr.findIndex(t => holidayKey(t) === holidayKey(h)) === i).map(h => {
             const key = holidayKey(h)
             const active = subscribedKeys.has(key)
             return (

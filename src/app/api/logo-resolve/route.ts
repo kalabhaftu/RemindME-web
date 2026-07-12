@@ -26,9 +26,9 @@ async function resolveDomain(query: string): Promise<string | null> {
 
 async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; contentType: string } | null> {
   const fetchUrls = [
-    `https://logo.clearbit.com/${domain}`,
     `https://cdn.brandfetch.io/${domain}/w/400/h/400`,
     `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://logo.clearbit.com/${domain}`,
   ];
 
   for (const url of fetchUrls) {
@@ -42,7 +42,7 @@ async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; conten
         };
       }
     } catch (e) {
-      console.error(`Error fetching logo from ${url}:`, e);
+      // Silently continue to the next fallback url
     }
   }
   return null;
