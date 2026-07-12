@@ -38,7 +38,7 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
         setItem(data)
         setName(data.name)
         setNotes(data.notes ?? '')
-        const s = data.subscription_details?.[0]
+        const s = data.subscription_details
         if (s) {
           setRenewalDate(s.renewal_date ?? '')
           setBillingAmount(s.billing_amount?.toString() ?? '')
@@ -48,7 +48,7 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
           setLogoDomain(s.logo_domain ?? '')
           setColorAccent(data.color_accent ?? '')
         }
-        const rr = data.recurrence_rules?.[0]
+        const rr = data.recurrence_rules
         if (rr) {
           setEnds(rr.ends)
           setEndsValue(rr.ends_value ?? '')

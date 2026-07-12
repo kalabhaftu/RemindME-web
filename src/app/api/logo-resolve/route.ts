@@ -21,6 +21,13 @@ async function resolveDomain(query: string): Promise<string | null> {
   } catch (e) {
     console.error('Clearbit autocomplete error:', e);
   }
+  
+  // Fallback: guess the domain from the query
+  const cleanQuery = query.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (cleanQuery.length > 0) {
+    return `${cleanQuery}.com`;
+  }
+  
   return null;
 }
 

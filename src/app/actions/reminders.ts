@@ -17,6 +17,7 @@ const baseReminderSchema = z.object({
 const personDetailsSchema = z.object({
   birthdate: z.string().optional(), // YYYY-MM-DD
   relationship: z.enum(['family', 'partner', 'friend', 'colleague', 'other']).optional(),
+  custom_relationship: z.string().optional(),
   gender: z.enum(['male', 'female', 'nonbinary', 'unspecified']).optional(),
   avatar_url: z.string().optional(),
 })
@@ -83,11 +84,11 @@ export type ReminderItemWithDetails = {
   created_at: string
   updated_at: string
   archived_at?: string
-  person_details?: z.infer<typeof personDetailsSchema>[]
-  subscription_details?: z.infer<typeof subscriptionDetailsSchema>[]
-  task_details?: z.infer<typeof taskDetailsSchema>[]
-  holiday_details?: z.infer<typeof holidayDetailsSchema>[]
-  recurrence_rules?: z.infer<typeof recurrenceRuleSchema>[]
+  person_details?: z.infer<typeof personDetailsSchema> | null
+  subscription_details?: z.infer<typeof subscriptionDetailsSchema> | null
+  task_details?: z.infer<typeof taskDetailsSchema> | null
+  holiday_details?: z.infer<typeof holidayDetailsSchema> | null
+  recurrence_rules?: z.infer<typeof recurrenceRuleSchema> | null
   notification_preferences?: z.infer<typeof notificationPreferenceSchema>[]
   escalation_state?: EscalationState[]
 }
@@ -114,7 +115,17 @@ export async function getReminder(id: string): Promise<ReminderItemWithDetails |
     .single()
 
   if (error) return null
-  return data
+
+  const unwrapDetails = (item: any) => ({
+    ...item,
+    person_details: Array.isArray(item.person_details) ? item.person_details[0] : item.person_details,
+    subscription_details: Array.isArray(item.subscription_details) ? item.subscription_details[0] : item.subscription_details,
+    task_details: Array.isArray(item.task_details) ? item.task_details[0] : item.task_details,
+    holiday_details: Array.isArray(item.holiday_details) ? item.holiday_details[0] : item.holiday_details,
+    recurrence_rules: Array.isArray(item.recurrence_rules) ? item.recurrence_rules[0] : item.recurrence_rules,
+  })
+
+  return unwrapDetails(data) as ReminderItemWithDetails
 }
 
 export async function getReminders(): Promise<ReminderItemWithDetails[]> {
@@ -139,7 +150,17 @@ export async function getReminders(): Promise<ReminderItemWithDetails[]> {
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(error.message)
-  return data
+
+  const unwrapDetails = (item: any) => ({
+    ...item,
+    person_details: Array.isArray(item.person_details) ? item.person_details[0] : item.person_details,
+    subscription_details: Array.isArray(item.subscription_details) ? item.subscription_details[0] : item.subscription_details,
+    task_details: Array.isArray(item.task_details) ? item.task_details[0] : item.task_details,
+    holiday_details: Array.isArray(item.holiday_details) ? item.holiday_details[0] : item.holiday_details,
+    recurrence_rules: Array.isArray(item.recurrence_rules) ? item.recurrence_rules[0] : item.recurrence_rules,
+  })
+
+  return data.map(unwrapDetails) as ReminderItemWithDetails[]
 }
 
 export async function createReminder(payload: ReminderPayload) {
@@ -167,13 +188,17 @@ export async function createReminder(payload: ReminderPayload) {
 
   // 2. Insert Category Details
   if (payload.category === 'person' && payload.person_details) {
-    await supabase.from('person_details').insert({ reminder_item_id: itemId, ...payload.person_details })
+    const { error } = await supabase.from('person_details').insert({ reminder_item_id: itemId, ...payload.person_details })
+    if (error) throw new Error('Person details error: ' + error.message)
   } else if (payload.category === 'subscription' && payload.subscription_details) {
-    await supabase.from('subscription_details').insert({ reminder_item_id: itemId, ...payload.subscription_details })
+    const { error } = await supabase.from('subscription_details').insert({ reminder_item_id: itemId, ...payload.subscription_details })
+    if (error) throw new Error('Subscription details error: ' + error.message)
   } else if (payload.category === 'task' && payload.task_details) {
-    await supabase.from('task_details').insert({ reminder_item_id: itemId, ...payload.task_details })
+    const { error } = await supabase.from('task_details').insert({ reminder_item_id: itemId, ...payload.task_details })
+    if (error) throw new Error('Task details error: ' + error.message)
   } else if (payload.category === 'custom_holiday' && payload.holiday_details) {
-    await supabase.from('holiday_details').insert({ reminder_item_id: itemId, ...payload.holiday_details })
+    const { error } = await supabase.from('holiday_details').insert({ reminder_item_id: itemId, ...payload.holiday_details })
+    if (error) throw new Error('Holiday details error: ' + error.message)
   }
 
   // 3. Insert Recurrence

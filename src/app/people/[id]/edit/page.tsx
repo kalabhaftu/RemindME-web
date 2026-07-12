@@ -35,7 +35,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
         setItem(data)
         setName(data.name)
         setNotes(data.notes ?? '')
-        const p = data.person_details?.[0]
+        const p = data.person_details
         if (p) {
           setBirthdate(p.birthdate ?? '')
           setGender(p.gender ?? 'unspecified')

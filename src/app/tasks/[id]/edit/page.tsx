@@ -42,9 +42,9 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
         setName(data.name)
         setNotes(data.notes ?? '')
         setIconKey(data.icon_key ?? 'trash')
-        const t = data.task_details?.[0]
+        const t = data.task_details
         if (t?.due_at) setDueAt(toDatetimeLocal(t.due_at))
-        const rr = data.recurrence_rules?.[0]
+        const rr = data.recurrence_rules
         if (rr) setFrequency(rr.frequency as typeof frequency)
         setPrefsMatrix(prefsFromItem(data))
       })

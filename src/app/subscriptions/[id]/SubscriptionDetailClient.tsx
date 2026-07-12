@@ -3,18 +3,21 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { format, parseISO } from 'date-fns'
-import { ArrowLeft, Trash2, CreditCard } from 'lucide-react'
+import { ArrowLeft, Trash2, CreditCard, AlertTriangle } from 'lucide-react'
+import { useState } from 'react'
 import { AppShell } from '@/components/AppShell'
+import { Modal } from '@/components/ui/Modal'
 import { TagPill } from '@/components/ui/TagPill'
 import { ReminderItemWithDetails, deleteReminder } from '@/app/actions/reminders'
 
 export function SubscriptionDetailClient({ item }: { item: ReminderItemWithDetails }) {
   const router = useRouter()
-  const s = item.subscription_details?.[0]
+  const s = item.subscription_details
   const renewalDate = s?.renewal_date
   
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDelete = async () => {
-    if (!confirm(`Delete ${item.name}?`)) return
     await deleteReminder(item.id)
     router.push('/subscriptions')
     router.refresh()
@@ -55,7 +58,7 @@ export function SubscriptionDetailClient({ item }: { item: ReminderItemWithDetai
               <Link href={`/subscriptions/${item.id}/edit`} className="px-4 py-2 bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.08)] rounded-lg text-sm font-medium transition-colors">
                 Edit
               </Link>
-              <button onClick={handleDelete} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
+              <button onClick={() => setIsDeleting(true)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
                 <Trash2 size={18} />
               </button>
             </div>
@@ -101,6 +104,32 @@ export function SubscriptionDetailClient({ item }: { item: ReminderItemWithDetai
           )}
         </div>
       </div>
+
+      <Modal isOpen={isDeleting} onClose={() => setIsDeleting(false)} title="Confirm Delete">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <p className="text-[var(--text-secondary)]">Are you sure you want to delete <span className="text-white font-medium">{item.name}</span>?</p>
+            <p className="text-sm text-[var(--text-tertiary)] mt-1">This action cannot be undone.</p>
+          </div>
+          <div className="flex gap-3 w-full mt-4">
+            <button 
+              onClick={() => setIsDeleting(false)}
+              className="flex-1 px-4 py-2 bg-[var(--bg-surface1)] hover:bg-[var(--bg-surface2)] border border-[var(--glass-border)] rounded-lg text-sm font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleDelete}
+              className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
     </AppShell>
   )
 }

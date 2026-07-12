@@ -10,8 +10,8 @@ import { format, isToday, isTomorrow, differenceInDays } from 'date-fns'
 import { Circle, Edit2, CheckCircle2, BellRing } from 'lucide-react'
 
 interface UpcomingPanelProps {
-  filter: '3d' | '7d' | 'month'
-  setFilter: (f: '3d' | '7d' | 'month') => void
+  filter: '3d' | '7d' | 'month' | 'all'
+  setFilter: (f: '3d' | '7d' | 'month' | 'all') => void
   occurrences: ReminderOccurrence[]
   onMarkDone: (id: string, date: string) => void
   onSnoozed?: () => void
@@ -32,7 +32,7 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
   const renderItemDetails = (occ: ReminderOccurrence) => {
     const item = occ.item
     if (item.category === 'person' && item.person_details?.length) {
-      const p = item.person_details[0]
+      const p = item.person_details
       if (!p.birthdate) return null
       // We calculate age at the occurrence date
       const age = new Date(occ.date).getFullYear() - new Date(p.birthdate).getFullYear()
@@ -47,7 +47,7 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
     }
     
     if (item.category === 'subscription' && item.subscription_details?.length) {
-      const s = item.subscription_details[0]
+      const s = item.subscription_details
       return (
         <div className="flex items-center gap-4 mt-2 text-[12px] font-mono text-[rgba(255,255,255,0.6)]">
           {s.logo_url && <img src={s.logo_url} alt="" className="w-4 h-4 rounded object-contain bg-[rgba(255,255,255,0.06)]" />}
@@ -101,6 +101,12 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
           className={`text-[12px] font-medium uppercase tracking-[0.02em] px-3 py-1.5 rounded-md transition-colors ${filter === 'month' ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'}`}
         >
           This Month
+        </button>
+        <button 
+          onClick={() => setFilter('all')}
+          className={`text-[12px] font-medium uppercase tracking-[0.02em] px-3 py-1.5 rounded-md transition-colors ${filter === 'all' ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'}`}
+        >
+          All Upcoming
         </button>
       </div>
 

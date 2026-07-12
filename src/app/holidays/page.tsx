@@ -60,13 +60,13 @@ export default function HolidaysPage() {
     if (data) {
       setSubscribed(
         data
-          .filter((r: { holiday_details?: { country_code: string; holiday_key: string; holiday_date: string }[] }) => r.holiday_details?.[0])
-          .map((r: { id: string; name: string; holiday_details: { country_code: string; holiday_key: string; holiday_date: string }[] }) => ({
+          .filter((r: { holiday_details?: { country_code: string; holiday_key: string; holiday_date: string } }) => r.holiday_details)
+          .map((r: { id: string; name: string; holiday_details: { country_code: string; holiday_key: string; holiday_date: string } }) => ({
             id: r.id,
             name: r.name,
-            holiday_key: r.holiday_details[0].holiday_key,
-            country_code: r.holiday_details[0].country_code,
-            holiday_date: r.holiday_details[0].holiday_date,
+            holiday_key: r.holiday_details.holiday_key,
+            country_code: r.holiday_details.country_code,
+            holiday_date: r.holiday_details.holiday_date,
           }))
       )
     }

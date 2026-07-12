@@ -25,8 +25,8 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
       .filter(i => i.category === 'subscription')
       .filter(i => !search || i.name.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
-        const da = a.subscription_details?.[0]?.renewal_date
-        const db = b.subscription_details?.[0]?.renewal_date
+        const da = a.subscription_details?.renewal_date
+        const db = b.subscription_details?.renewal_date
         if (!da || !db) return 0
         return daysUntilRenewal(da) - daysUntilRenewal(db)
       })
@@ -62,7 +62,7 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
           </thead>
           <tbody>
             {rows.map(item => {
-              const s = item.subscription_details?.[0]
+              const s = item.subscription_details
               const days = s?.renewal_date ? daysUntilRenewal(s.renewal_date) : null
               return (
                 <tr key={item.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.04)] transition-colors">

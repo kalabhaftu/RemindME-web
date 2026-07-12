@@ -113,9 +113,10 @@ export function generateOccurrences(
     // Determine the base date and recurrence rules based on category
     let currentDates: Date[] = [];
 
-    if (item.category === 'person' && item.person_details?.[0]?.birthdate) {
+    if (item.category === 'person' && item.person_details?.birthdate) {
       // Birthdays repeat yearly
-      const bd = new Date(item.person_details[0].birthdate);
+      const [y, m, d] = item.person_details.birthdate.split('-').map(Number);
+      const bd = new Date(y, m - 1, d);
       let curr = new Date(bd);
       curr.setUTCFullYear(startD.getUTCFullYear());
       if (curr.getTime() < startD.getTime()) curr.setUTCFullYear(curr.getUTCFullYear() + 1);
@@ -131,10 +132,11 @@ export function generateOccurrences(
         }
         curr = addYears(curr, 1);
       }
-    } else if (item.category === 'subscription' && item.subscription_details?.[0]?.renewal_date) {
-      const rd = new Date(item.subscription_details[0].renewal_date);
-      const cycle = item.subscription_details[0].cycle || 'monthly';
-      const rr = item.recurrence_rules?.[0];
+    } else if (item.category === 'subscription' && item.subscription_details?.renewal_date) {
+      const [y, m, d] = item.subscription_details.renewal_date.split('-').map(Number);
+      const rd = new Date(y, m - 1, d);
+      const cycle = item.subscription_details.cycle || 'monthly';
+      const rr = item.recurrence_rules;
       let curr = new Date(rd);
       let count = 0;
 
@@ -159,9 +161,10 @@ export function generateOccurrences(
         else curr = addDays(curr, 1);
         count++;
       }
-    } else if (item.category === 'custom_holiday' && item.holiday_details?.[0]?.holiday_date) {
-      const hd = item.holiday_details[0]
-      const holidayDate = new Date(hd.holiday_date)
+    } else if (item.category === 'custom_holiday' && item.holiday_details?.holiday_date) {
+      const hd = item.holiday_details
+      const [y, m, d] = hd.holiday_date.split('-').map(Number);
+      const holidayDate = new Date(y, m - 1, d);
       let curr = new Date(holidayDate)
       curr.setUTCFullYear(startD.getUTCFullYear())
       if (curr.getTime() < startD.getTime()) curr.setUTCFullYear(curr.getUTCFullYear() + 1)
@@ -170,9 +173,9 @@ export function generateOccurrences(
         currentDates.push(new Date(curr))
         curr = addYears(curr, 1)
       }
-    } else if (item.category === 'task' && item.task_details?.[0]?.due_at) {
-      const due = new Date(item.task_details[0].due_at);
-      const rr = item.recurrence_rules?.[0];
+    } else if (item.category === 'task' && item.task_details?.due_at) {
+      const due = new Date(item.task_details.due_at);
+      const rr = item.recurrence_rules;
 
       if (!rr || rr.frequency === 'none') {
         if (!isBefore(due, startD) && !isAfter(due, endD)) {

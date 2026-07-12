@@ -27,7 +27,7 @@ function toPersonRows(items: ReminderItemWithDetails[]): PersonRow[] {
   return items
     .filter(i => i.category === 'person')
     .map(i => {
-      const p = i.person_details?.[0]
+      const p = i.person_details
       const birthdate = p?.birthdate
       return {
         id: i.id,

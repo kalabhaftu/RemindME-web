@@ -19,7 +19,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
   const renderItemDetails = (occ: ReminderOccurrence) => {
     const item = occ.item
     if (item.category === 'person' && item.person_details?.length) {
-      const p = item.person_details[0]
+      const p = item.person_details
       if (!p.birthdate) return null
       const age = new Date(occ.date).getFullYear() - new Date(p.birthdate).getFullYear()
       const zodiac = getZodiacSign(p.birthdate)
@@ -33,7 +33,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
     }
     
     if (item.category === 'subscription' && item.subscription_details?.length) {
-      const s = item.subscription_details[0]
+      const s = item.subscription_details
       return (
         <div className="flex items-center gap-4 mt-2 text-[12px] font-mono text-[rgba(255,255,255,0.6)]">
           {s.logo_url && <img src={s.logo_url} alt="" className="w-4 h-4 rounded-full" />}

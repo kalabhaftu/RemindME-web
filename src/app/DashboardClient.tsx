@@ -22,7 +22,7 @@ const QUICK_ADD = [
 
 export default function DashboardClient({ initialReminders }: { initialReminders: ReminderItemWithDetails[] }) {
   const [reminders, setReminders] = useState<ReminderItemWithDetails[]>(initialReminders)
-  const [filter, setFilter] = useState<'3d' | '7d' | 'month'>('month')
+  const [filter, setFilter] = useState<'3d' | '7d' | 'month' | 'all'>('all')
   const [calendarMonth, setCalendarMonth] = useState(() => new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
@@ -72,6 +72,7 @@ export default function DashboardClient({ initialReminders }: { initialReminders
     let days = 30
     if (filter === '3d') days = 3
     if (filter === '7d') days = 7
+    if (filter === 'all') days = 365
     const end = addDays(today, days)
     end.setHours(23,59,59,999)
     const occs = generateOccurrences(reminders, today, end)

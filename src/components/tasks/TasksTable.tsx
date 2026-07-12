@@ -35,8 +35,8 @@ export function TasksTable({
       .filter(i => i.category === 'task')
       .filter(i => !search || i.name.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
-        const da = a.task_details?.[0]?.due_at
-        const db = b.task_details?.[0]?.due_at
+        const da = a.task_details?.due_at
+        const db = b.task_details?.due_at
         if (!da || !db) return 0
         return new Date(da).getTime() - new Date(db).getTime()
       })
@@ -58,10 +58,10 @@ export function TasksTable({
 
       <div className="space-y-2">
         {rows.map(item => {
-          const t = item.task_details?.[0]
+          const t = item.task_details
           const Icon = item.icon_key ? ICON_MAP[item.icon_key] : CheckSquare
           const dueStr = t?.due_at ? format(parseISO(t.due_at), 'MMM d, yyyy h:mm a') : 'No due date'
-          const freq = item.recurrence_rules?.[0]?.frequency
+          const freq = item.recurrence_rules?.frequency
           return (
             <div key={item.id} className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] flex items-center gap-4 hover:bg-[rgba(255,255,255,0.06)] transition-colors group">
               <Link href={`/tasks/${item.id}`} className="flex items-center gap-4 flex-1 min-w-0 group-hover:text-[#5B9CFF] transition-colors">

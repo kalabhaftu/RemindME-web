@@ -5,6 +5,8 @@ import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Modal } from '@/components/ui/Modal'
+
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -23,6 +25,18 @@ export default function SettingsPage() {
   const [nudgeDelayHours, setNudgeDelayHours] = useState(4)
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    isDestructive?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
@@ -236,40 +250,55 @@ export default function SettingsPage() {
   }
 
   const deleteTelegramToken = async () => {
-    if (!window.confirm('Are you sure you want to delete your Telegram token?')) return;
-    setLoading(true);
-    try {
-      const res = await fetch('/api/settings/telegram', { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete token');
-      setHasTelegramToken(false);
-      setMaskedTelegramToken('');
-      setBotUsername(null);
-      setHasChatId(false);
-      setMaskedChatId('');
-      setTelegramToken('');
-      showToast('Telegram token deleted', 'success');
-    } catch (err: any) {
-      showToast(err.message, 'error');
-    } finally {
-      setLoading(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Telegram Token?',
+      message: 'Are you sure you want to delete your Telegram token?',
+      isDestructive: true,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setLoading(true);
+        try {
+          const res = await fetch('/api/settings/telegram', { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete token');
+          setHasTelegramToken(false);
+          setMaskedTelegramToken('');
+          setBotUsername(null);
+          setHasChatId(false);
+          setMaskedChatId('');
+          setTelegramToken('');
+          showToast('Telegram token deleted', 'success');
+        } catch (err: any) {
+          showToast(err.message, 'error');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   }
 
   const deleteAccount = async () => {
-    if (window.confirm('Are you sure you want to completely delete your account? This will cascade delete all your reminders and revoke external tokens.')) {
-      try {
-        const res = await fetch('/api/account', { method: 'DELETE' })
-        if (res.ok) {
-          await supabaseRef.current.auth.signOut()
-          router.push('/login')
-        } else {
-          const errorData = await res.json().catch(() => ({}))
-          showToast(errorData.error || 'Failed to delete account', 'error')
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Account?',
+      message: 'Are you sure you want to completely delete your account? This will cascade delete all your reminders and revoke external tokens.',
+      isDestructive: true,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          const res = await fetch('/api/account', { method: 'DELETE' })
+          if (res.ok) {
+            await supabaseRef.current.auth.signOut()
+            router.push('/login')
+          } else {
+            const errorData = await res.json().catch(() => ({}))
+            showToast(errorData.error || 'Failed to delete account', 'error')
+          }
+        } catch (err) {
+          showToast('Error deleting account', 'error')
         }
-      } catch (err) {
-        showToast('Error deleting account', 'error')
       }
-    }
+    });
   }
 
   const exportData = async () => {
@@ -290,10 +319,18 @@ export default function SettingsPage() {
   }
 
   const logoutAllDevices = async () => {
-    if (!window.confirm('Sign out on all devices? You will need to log in again everywhere.')) return
-    const { error } = await supabaseRef.current.auth.signOut({ scope: 'global' })
-    if (error) showToast(error.message, 'error')
-    else router.push('/login')
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sign Out All Devices?',
+      message: 'Sign out on all devices? You will need to log in again everywhere.',
+      isDestructive: true,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const { error } = await supabaseRef.current.auth.signOut({ scope: 'global' })
+        if (error) showToast(error.message, 'error')
+        else router.push('/login')
+      }
+    });
   }
 
   return (
@@ -633,6 +670,32 @@ export default function SettingsPage() {
           {toast.message}
         </div>
       )}
+
+      <Modal 
+        isOpen={confirmModal.isOpen} 
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} 
+        title={confirmModal.title}
+      >
+        <p className="text-[rgba(255,255,255,0.8)] text-sm mb-6">{confirmModal.message}</p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            className="px-4 py-2 text-sm font-medium text-[rgba(255,255,255,0.6)] hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmModal.onConfirm}
+            className={`px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors ${
+              confirmModal.isDestructive 
+                ? 'bg-red-500 hover:bg-red-600' 
+                : 'bg-[#3B82F6] hover:bg-[#2563EB]'
+            }`}
+          >
+            Confirm
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
