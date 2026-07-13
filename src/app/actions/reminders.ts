@@ -224,11 +224,7 @@ export async function createReminder(payload: ReminderPayload) {
     await supabase.from('notification_preferences').insert(prefs)
   }
 
-  revalidatePath('/')
-  revalidatePath('/people')
-  revalidatePath('/subscriptions')
-  revalidatePath('/tasks')
-  revalidatePath('/holidays')
+  revalidatePath('/', 'layout')
   return item
 }
 
@@ -290,10 +286,7 @@ export async function updateReminder(id: string, payload: Partial<ReminderPayloa
     if (prefs.length > 0) await supabase.from('notification_preferences').insert(prefs)
   }
 
-  revalidatePath('/')
-  revalidatePath('/people')
-  revalidatePath('/subscriptions')
-  revalidatePath('/tasks')
+  revalidatePath('/', 'layout')
 }
 
 export async function deleteReminder(id: string) {
@@ -302,11 +295,7 @@ export async function deleteReminder(id: string) {
   // RLS will ensure user only deletes their own
   const { error } = await supabase.from('reminder_items').delete().eq('id', id)
   if (error) throw new Error(error.message)
-    
-  revalidatePath('/')
-  revalidatePath('/people')
-  revalidatePath('/subscriptions')
-  revalidatePath('/tasks')
+  revalidatePath('/', 'layout')
 }
 
 export async function snoozeReminder(reminderItemId: string, occurrenceDate: string, hours = 1) {
@@ -320,7 +309,7 @@ export async function snoozeReminder(reminderItemId: string, occurrenceDate: str
   }, { onConflict: 'reminder_item_id, occurrence_date' })
 
   if (error) throw new Error(error.message)
-  revalidatePath('/')
+  revalidatePath('/', 'layout')
 }
 
 export async function markTaskDone(reminderItemId: string, occurrenceDate: string) {
@@ -336,5 +325,5 @@ export async function markTaskDone(reminderItemId: string, occurrenceDate: strin
 
   if (error) throw new Error(error.message)
     
-  revalidatePath('/')
+  revalidatePath('/', 'layout')
 }

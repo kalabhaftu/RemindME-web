@@ -18,7 +18,7 @@ interface SelectedDayPanelProps {
 export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: SelectedDayPanelProps) {
   const renderItemDetails = (occ: ReminderOccurrence) => {
     const item = occ.item
-    if (item.category === 'person' && item.person_details?.length) {
+    if (item.category === 'person' && item.person_details) {
       const p = item.person_details
       if (!p.birthdate) return null
       const age = new Date(occ.date).getFullYear() - new Date(p.birthdate).getFullYear()
@@ -32,7 +32,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
       )
     }
     
-    if (item.category === 'subscription' && item.subscription_details?.length) {
+    if (item.category === 'subscription' && item.subscription_details) {
       const s = item.subscription_details
       return (
         <div className="flex items-center gap-4 mt-2 text-[12px] font-mono text-[rgba(255,255,255,0.6)]">

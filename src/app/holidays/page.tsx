@@ -59,15 +59,18 @@ export default function HolidaysPage() {
 
     if (data) {
       setSubscribed(
-        data
-          .filter((r: { holiday_details?: { country_code: string; holiday_key: string; holiday_date: string } }) => r.holiday_details)
-          .map((r: { id: string; name: string; holiday_details: { country_code: string; holiday_key: string; holiday_date: string } }) => ({
-            id: r.id,
-            name: r.name,
-            holiday_key: r.holiday_details.holiday_key,
-            country_code: r.holiday_details.country_code,
-            holiday_date: r.holiday_details.holiday_date,
-          }))
+        (data as any[])
+          .map(r => {
+            const hd = Array.isArray(r.holiday_details) ? r.holiday_details[0] : r.holiday_details
+            return {
+              id: r.id,
+              name: r.name,
+              holiday_key: hd?.holiday_key,
+              country_code: hd?.country_code,
+              holiday_date: hd?.holiday_date,
+            }
+          })
+          .filter(r => r.holiday_key && r.country_code)
       )
     }
     setLoading(false)
