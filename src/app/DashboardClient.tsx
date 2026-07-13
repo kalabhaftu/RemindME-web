@@ -22,7 +22,7 @@ const QUICK_ADD = [
 
 export default function DashboardClient({ initialReminders }: { initialReminders: ReminderItemWithDetails[] }) {
   const [reminders, setReminders] = useState<ReminderItemWithDetails[]>(initialReminders)
-  const [filter, setFilter] = useState<'3d' | '7d' | 'month' | 'all'>('all')
+  const [filter, setFilter] = useState<'3d' | '7d' | 'month' | 'all'>('7d')
   const [calendarMonth, setCalendarMonth] = useState(() => new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
@@ -73,12 +73,19 @@ export default function DashboardClient({ initialReminders }: { initialReminders
   const upcomingOccurrences = useMemo(() => {
     const today = new Date()
     today.setHours(0,0,0,0)
-    let days = 30
-    if (filter === '3d') days = 3
-    if (filter === '7d') days = 7
-    if (filter === 'all') days = 365
-    const end = addDays(today, days)
+    
+    let end: Date;
+    if (filter === '3d') {
+      end = addDays(today, 3)
+    } else if (filter === '7d') {
+      end = addDays(today, 7)
+    } else if (filter === 'month') {
+      end = endOfMonth(today)
+    } else {
+      end = addDays(today, 365) // all
+    }
     end.setHours(23,59,59,999)
+
     const occs = generateOccurrences(reminders, today, end)
     return occs.filter(o => o.status === 'today' || o.status === 'upcoming' || o.status === 'completed-past' || o.status === 'missed-past')
   }, [reminders, filter])
