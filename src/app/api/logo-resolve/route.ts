@@ -22,8 +22,26 @@ async function resolveDomain(query: string): Promise<string | null> {
     console.error('Clearbit autocomplete error:', e);
   }
   
+  // Try DuckDuckGo Autocomplete as fallback
+  try {
+    const ddgRes = await fetch(`https://duckduckgo.com/ac/?q=${encodeURIComponent(query + ' official site')}&type=list`);
+    if (ddgRes.ok) {
+      const ddgData = await ddgRes.json();
+      if (Array.isArray(ddgData) && ddgData.length > 1 && Array.isArray(ddgData[1]) && ddgData[1].length > 0) {
+        const topResult = ddgData[1][0];
+        // DuckDuckGo autocomplete doesn't always give domain, but sometimes gives URLs.
+        const match = topResult.match(/https?:\/\/(?:www\.)?([^\/]+)/);
+        if (match && match[1]) return match[1];
+      }
+    }
+  } catch (e) {}
+
   // Fallback: guess the domain from the query
-  const cleanQuery = query.toLowerCase().replace(/[^a-z0-9]/g, '');
+  let cleanQuery = query.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (cleanQuery === 'chatgpt' || cleanQuery === 'openai') return 'openai.com';
+  if (cleanQuery === 'x') return 'x.com';
+  if (cleanQuery === 'twitter') return 'twitter.com';
+
   if (cleanQuery.length > 0) {
     return `${cleanQuery}.com`;
   }
@@ -34,8 +52,9 @@ async function resolveDomain(query: string): Promise<string | null> {
 async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; contentType: string } | null> {
   const fetchUrls = [
     `https://cdn.brandfetch.io/${domain}/w/400/h/400`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
     `https://logo.clearbit.com/${domain}`,
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://icon.horse/icon/${domain}`, // excellent fallback
   ];
 
   for (const url of fetchUrls) {

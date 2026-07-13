@@ -115,8 +115,13 @@ export function generateOccurrences(
 
     if (item.category === 'person' && item.person_details?.birthdate) {
       // Birthdays repeat yearly
-      const [y, m, d] = item.person_details.birthdate.split('-').map(Number);
-      const bd = new Date(y, m - 1, d);
+      let bd: Date;
+      if (item.person_details.birthdate.includes('T')) {
+        bd = new Date(item.person_details.birthdate);
+      } else {
+        const [y, m, d] = item.person_details.birthdate.split('-').map(Number);
+        bd = new Date(y, m - 1, d);
+      }
       let curr = new Date(bd);
       curr.setUTCFullYear(startD.getUTCFullYear());
       if (curr.getTime() < startD.getTime()) curr.setUTCFullYear(curr.getUTCFullYear() + 1);
@@ -133,8 +138,13 @@ export function generateOccurrences(
         curr = addYears(curr, 1);
       }
     } else if (item.category === 'subscription' && item.subscription_details?.renewal_date) {
-      const [y, m, d] = item.subscription_details.renewal_date.split('-').map(Number);
-      const rd = new Date(y, m - 1, d);
+      let rd: Date;
+      if (item.subscription_details.renewal_date.includes('T')) {
+        rd = new Date(item.subscription_details.renewal_date);
+      } else {
+        const [y, m, d] = item.subscription_details.renewal_date.split('-').map(Number);
+        rd = new Date(y, m - 1, d);
+      }
       const cycle = item.subscription_details.cycle || 'monthly';
       const rr = item.recurrence_rules;
       let curr = new Date(rd);

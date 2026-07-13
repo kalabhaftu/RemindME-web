@@ -126,9 +126,9 @@ export default function NewSubscriptionPage() {
             </div>
 
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Renewal date *</label>
-              <input type="date" required value={renewalDate} onChange={e => setRenewalDate(e.target.value)}
-                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60" />
+              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Renewal date & time *</label>
+              <input type="datetime-local" required value={renewalDate} onChange={e => setRenewalDate(e.target.value)}
+                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60" style={{ colorScheme: 'dark' }} />
             </div>
 
             <div className="grid grid-cols-3 gap-3">

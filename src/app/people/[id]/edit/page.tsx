@@ -37,7 +37,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
         setNotes(data.notes ?? '')
         const p = data.person_details
         if (p) {
-          setBirthdate(p.birthdate ?? '')
+          setBirthdate(p.birthdate ? (p.birthdate.length === 10 ? `${p.birthdate}T00:00` : p.birthdate.slice(0, 16)) : '')
           setGender(p.gender ?? 'unspecified')
           setRelationship(p.relationship ?? 'friend')
           setAvatarUrl(p.avatar_url ?? '')
@@ -147,9 +147,9 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" />
             </div>
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Birthdate *</label>
-              <input type="date" required value={birthdate} onChange={e => setBirthdate(e.target.value)}
-                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" />
+              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Birthdate & time *</label>
+              <input type="datetime-local" required value={birthdate} onChange={e => setBirthdate(e.target.value)}
+                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" style={{ colorScheme: 'dark' }} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

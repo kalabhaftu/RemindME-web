@@ -40,6 +40,10 @@ export default function DashboardClient({ initialReminders }: { initialReminders
     const channel = supabase
       .channel('public:reminder_items')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reminder_items' }, () => router.refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'person_details' }, () => router.refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscription_details' }, () => router.refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_details' }, () => router.refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'holiday_details' }, () => router.refresh())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'escalation_state' }, () => router.refresh())
       .subscribe()
     return () => { supabase.removeChannel(channel) }

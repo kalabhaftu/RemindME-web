@@ -43,7 +43,9 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
         setNotes(data.notes ?? '')
         setIconKey(data.icon_key ?? 'trash')
         const t = data.task_details
-        if (t?.due_at) setDueAt(toDatetimeLocal(t.due_at))
+        if (t) {
+          setDueAt(t.due_at ? (t.due_at.length === 10 ? `${t.due_at}T00:00` : t.due_at.slice(0, 16)) : '')
+        }
         const rr = data.recurrence_rules
         if (rr) setFrequency(rr.frequency as typeof frequency)
         setPrefsMatrix(prefsFromItem(data))
@@ -129,7 +131,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
             <div>
               <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Due date & time *</label>
               <input type="datetime-local" required value={dueAt} onChange={e => setDueAt(e.target.value)}
-                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" />
+                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" style={{ colorScheme: 'dark' }} />
             </div>
 
             <div>
