@@ -146,16 +146,16 @@ export default function HolidaysPage() {
   return (
     <AppShell title="Holidays" action={<AddButton href="/holidays/new" label="Custom" />}>
       <div className="mb-6">
-        <h2 className="text-[22px] font-semibold tracking-tight">Holiday Subscriptions</h2>
+        <h2 className="text-[22px] font-semibold tracking-tight">Holiday Reminders</h2>
         <p className="text-[13px] text-[rgba(255,255,255,0.45)] mt-1">
-          Subscribe to public holidays by country. Powered by Nager.Date.
+          Tap a holiday to add or remove it as a reminder.
         </p>
       </div>
 
       {subscribed.length > 0 && (
         <div className="mb-8">
           <h3 className="text-[12px] uppercase tracking-[0.04em] text-[rgba(255,255,255,0.45)] mb-3">
-            Your subscriptions ({subscribed.length})
+            Active reminders ({subscribed.length})
           </h3>
           <div className="flex flex-wrap gap-2">
             {subscribed.map(s => (
@@ -165,6 +165,20 @@ export default function HolidaysPage() {
                 <span className="text-[rgba(255,255,255,0.38)] font-mono text-[11px]">
                   {format(parseISO(s.holiday_date), 'MMM d')}
                 </span>
+                <button
+                  onClick={async () => {
+                    setToggling(s.holiday_key)
+                    try {
+                      await deleteReminder(s.id)
+                      setSubscribed(prev => prev.filter(x => x.id !== s.id))
+                      router.refresh()
+                    } finally { setToggling(null) }
+                  }}
+                  disabled={toggling === s.holiday_key}
+                  className="ml-1 text-[rgba(255,255,255,0.35)] hover:text-[#EF4444] transition-colors"
+                >
+                  ×
+                </button>
               </span>
             ))}
           </div>

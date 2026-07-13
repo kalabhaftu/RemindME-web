@@ -107,10 +107,6 @@ export default function DashboardClient({ initialReminders }: { initialReminders
 
   return (
     <AppShell>
-      <div className="mb-8">
-        <h2 className="text-[22px] font-semibold tracking-tight text-[rgba(255,255,255,0.92)]">Overview</h2>
-        <p className="text-[13px] text-[rgba(255,255,255,0.45)] mt-1">Today&apos;s reminders and what&apos;s coming up.</p>
-      </div>
 
       <div className="grid grid-cols-3 gap-3 mb-8">
         {[
@@ -126,12 +122,11 @@ export default function DashboardClient({ initialReminders }: { initialReminders
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
-        <span className="text-[12px] uppercase tracking-[0.04em] text-[rgba(255,255,255,0.38)] self-center mr-2">Quick add</span>
+      <div className="grid grid-cols-2 gap-2 mb-8">
         {QUICK_ADD.map(({ href, label, icon: Icon }) => (
           <Link key={href} href={href}
-            className="flex items-center gap-2 px-3 py-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] text-[13px] font-medium text-[rgba(255,255,255,0.7)] hover:bg-[rgba(255,255,255,0.06)] hover:text-white transition-colors">
-            <Icon size={14} className="text-[#3B82F6]" />
+            className="flex items-center gap-2.5 px-4 py-3 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[13px] font-medium text-[rgba(255,255,255,0.7)] hover:bg-[rgba(255,255,255,0.06)] hover:text-white transition-colors">
+            <Icon size={15} className="text-[#3B82F6] shrink-0" />
             {label}
           </Link>
         ))}
