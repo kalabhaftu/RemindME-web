@@ -36,12 +36,9 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
       if (!p.birthdate) return null
       // We calculate age at the occurrence date
       const age = new Date(occ.date).getFullYear() - new Date(p.birthdate).getFullYear()
-      const zodiac = getZodiacSign(p.birthdate)
       return (
         <div className="flex gap-4 mt-2 text-[12px] font-mono text-[rgba(255,255,255,0.6)]">
           <span>Turns {age}</span>
-          <span>•</span>
-          <span>{zodiac}</span>
         </div>
       )
     }
