@@ -57,28 +57,44 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
   const dateTitle = isTodayDate ? 'Today' : isTomorrowDate ? 'Tomorrow' : format(date, 'EEEE, MMM d, yyyy')
 
   return (
-    <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-6 sticky top-6 mt-6">
+    <div 
+      className="bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] p-6 sticky top-6 mt-6 backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+      style={{
+        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
+      }}
+    >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[15px] font-medium text-[rgba(255,255,255,0.92)]">
+        <h2 className="text-[14px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.85)]">
           {dateTitle}
         </h2>
         <button 
           onClick={onClose}
-          className="text-[rgba(255,255,255,0.6)] hover:text-white transition-colors"
+          className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.6)] hover:text-white flex items-center justify-center transition-all cursor-pointer"
         >
-          <X size={20} />
+          <X size={14} />
         </button>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {occurrences.length === 0 ? (
-          <div className="p-8 mt-4 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px] flex flex-col items-center justify-center">
-            <Circle size={24} className="text-[rgba(255,255,255,0.1)] mb-3" />
-            <p className="text-[13px] text-[rgba(255,255,255,0.38)]">No reminders on this day.</p>
+          <div 
+            className="p-8 mt-4 text-center bg-[rgba(15,18,28,0.4)] border border-[rgba(255,255,255,0.05)] rounded-[24px] flex flex-col items-center justify-center"
+            style={{
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
+            }}
+          >
+            <Circle size={24} className="text-[rgba(255,255,255,0.15)] mb-3" />
+            <p className="text-[12px] text-[rgba(255,255,255,0.38)]">No reminders on this day.</p>
           </div>
         ) : (
           occurrences.map((occ, idx) => (
-            <div key={`${occ.item.id}-${idx}`} className="p-4 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] rounded-[12px] flex justify-between items-center hover:bg-[rgba(255,255,255,0.1)] transition-colors group">
+            <div 
+              key={`${occ.item.id}-${idx}`} 
+              className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-[20px] flex justify-between items-center hover:bg-[rgba(255,255,255,0.06)] transition-all group shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+              style={{
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
+              }}
+            >
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div 
@@ -86,28 +102,28 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
                     style={{ backgroundColor: occ.item.color_accent || '#3B82F6' }}
                   />
                 </div>
-                <h3 className="font-medium text-[rgba(255,255,255,0.92)] text-[14px] leading-[1.5]">{occ.item.name}</h3>
+                <h3 className="font-bold text-white text-[14px] leading-[1.5]">{occ.item.name}</h3>
                 {renderItemDetails(occ)}
               </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 {occ.item.category === 'task' && occ.status !== 'completed-past' && (
                   <button 
                     onClick={() => onMarkDone(occ.item.id, format(occ.date, 'yyyy-MM-dd'))} 
-                    className="text-[rgba(255,255,255,0.38)] hover:text-[#34D399] transition-colors"
+                    className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30 text-[rgba(255,255,255,0.6)] flex items-center justify-center transition-all cursor-pointer"
                     title="Mark Done"
                   >
-                    <Circle size={18} />
+                    <CheckCircle2 size={12} />
                   </button>
                 )}
                 {occ.status === 'completed-past' && (
-                  <CheckCircle2 size={18} className="text-[#34D399]" />
+                  <CheckCircle2 size={16} className="text-[#34D399] mx-1" />
                 )}
                 <Link
                   href={getEditHref(occ.item)}
-                  className="text-[rgba(255,255,255,0.38)] hover:text-white transition-colors"
+                  className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.6)] flex items-center justify-center transition-all"
                   title="Edit"
                 >
-                  <Edit2 size={18} />
+                  <Edit2 size={12} />
                 </Link>
               </div>
             </div>

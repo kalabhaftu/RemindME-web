@@ -52,34 +52,45 @@ export function TasksTable({
   }
 
   return (
-    <div className="space-y-4">
-      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tasks..."
-        className="w-full max-w-sm px-4 py-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] text-sm focus:outline-none focus:border-[#3B82F6]/60" />
+    <div className="space-y-6">
+      <input 
+        type="text" 
+        value={search} 
+        onChange={e => setSearch(e.target.value)} 
+        placeholder="Search tasks..."
+        className="w-full max-w-sm px-5 py-2.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-medium" 
+      />
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {rows.map(item => {
           const t = item.task_details
-          const Icon = item.icon_key ? ICON_MAP[item.icon_key] : CheckSquare
+          const Icon = (item.icon_key && ICON_MAP[item.icon_key]) ? ICON_MAP[item.icon_key] : CheckSquare
           const dueStr = t?.due_at ? format(parseISO(t.due_at), 'MMM d, yyyy h:mm a') : 'No due date'
           const freq = item.recurrence_rules?.frequency
           return (
-            <div key={item.id} className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] flex items-center gap-4 hover:bg-[rgba(255,255,255,0.06)] transition-colors group">
+            <div 
+              key={item.id} 
+              className="p-4 bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-[20px] flex items-center gap-4 hover:bg-[rgba(255,255,255,0.08)] transition-all group shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+              style={{
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
+              }}
+            >
               <Link href={`/tasks/${item.id}`} className="flex items-center gap-4 flex-1 min-w-0 group-hover:text-[#5B9CFF] transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
                   <Icon size={18} className="text-[#3B82F6]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[14px] font-medium truncate text-[rgba(255,255,255,0.92)]">{item.name}</div>
-                  <div className="text-[12px] font-mono text-[rgba(255,255,255,0.45)] mt-0.5">{dueStr}{freq && freq !== 'none' ? ` · ${freq}` : ''}</div>
+                  <div className="text-[14px] font-bold truncate text-white">{item.name}</div>
+                  <div className="text-[11px] font-mono text-[rgba(255,255,255,0.45)] mt-0.5">{dueStr}{freq && freq !== 'none' ? ` · ${freq}` : ''}</div>
                 </div>
               </Link>
               {onMarkDone && t?.due_at && (
                 <button
                   onClick={() => onMarkDone(item.id, format(parseISO(t.due_at!), 'yyyy-MM-dd'))}
-                  className="opacity-0 group-hover:opacity-100 text-[rgba(255,255,255,0.38)] hover:text-[#34D399] transition-all"
+                  className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30 text-[rgba(255,255,255,0.6)] flex items-center justify-center transition-all cursor-pointer"
                   title="Mark done"
                 >
-                  <Circle size={20} />
+                  <Circle size={14} />
                 </button>
               )}
             </div>

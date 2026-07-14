@@ -108,26 +108,34 @@ export default function DashboardClient({ initialReminders }: { initialReminders
   return (
     <AppShell>
 
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-3 gap-4 mb-8">
         {[
           { href: '/people', label: 'People', count: stats.people },
           { href: '/subscriptions', label: 'Subscriptions', count: stats.subs },
           { href: '/tasks', label: 'Tasks', count: stats.tasks },
         ].map(s => (
           <Link key={s.href} href={s.href}
-            className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] hover:bg-[rgba(255,255,255,0.06)] transition-colors">
-            <div className="text-[24px] font-semibold font-mono text-[#3B82F6]">{s.count}</div>
-            <div className="text-[13px] text-[rgba(255,255,255,0.6)] mt-1">{s.label}</div>
+            className="p-5 bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[24px] hover:bg-[rgba(255,255,255,0.08)] transition-all hover:scale-[1.02] shadow-[0_8px_32px_rgba(0,0,0,0.15)] flex flex-col justify-between"
+            style={{
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
+            }}
+          >
+            <div className="text-[28px] font-extrabold font-mono text-[#3B82F6]">{s.count}</div>
+            <div className="text-[12px] font-semibold text-[rgba(255,255,255,0.6)] uppercase tracking-wider mt-1">{s.label}</div>
           </Link>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {QUICK_ADD.map(({ href, label, icon: Icon }) => (
           <Link key={href} href={href}
-            className="flex items-center gap-2.5 px-4 py-3 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[13px] font-medium text-[rgba(255,255,255,0.7)] hover:bg-[rgba(255,255,255,0.06)] hover:text-white transition-colors">
-            <Icon size={15} className="text-[#3B82F6] shrink-0" />
-            {label}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs font-semibold text-[rgba(255,255,255,0.8)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-all active:scale-95 text-center shadow-sm"
+            style={{
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
+            }}
+          >
+            <Icon size={14} className="text-[#3B82F6] shrink-0" />
+            <span>Add {label}</span>
           </Link>
         ))}
       </div>
@@ -169,10 +177,18 @@ export default function DashboardClient({ initialReminders }: { initialReminders
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-          toast.type === 'error' ? 'bg-red-500/10 border border-red-500/20 text-red-400' : 'bg-[#34D399]/10 border border-[#34D399]/20 text-[#34D399]'
-        }`}>
-          {toast.message}
+        <div 
+          className={`fixed bottom-6 right-6 px-5 py-3 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] flex items-center gap-2.5 text-xs font-semibold pointer-events-auto transition-all duration-300 z-50`}
+          style={{
+            backdropFilter: 'blur(20px)',
+            filter: 'url(#liquid-glass-refraction)',
+            backgroundColor: toast.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+            borderColor: toast.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)',
+            color: toast.type === 'error' ? '#fca5a5' : '#a7f3d0',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 12px 40px rgba(0,0,0,0.5)'
+          }}
+        >
+          <span>{toast.message}</span>
         </div>
       )}
     </AppShell>

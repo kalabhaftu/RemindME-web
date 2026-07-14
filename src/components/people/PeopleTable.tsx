@@ -118,22 +118,22 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.38)]" />
+          <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.4)]" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search people..."
-            className="w-full pl-9 pr-4 py-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] text-sm text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.38)] focus:outline-none focus:border-[#3B82F6]/60"
+            className="w-full pl-10 pr-4 py-2.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.38)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-medium"
           />
         </div>
         <select
           value={filterRelationship}
           onChange={e => setFilterRelationship(e.target.value)}
-          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-3 py-2 text-sm text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60"
+          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full px-4 py-2.5 text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 font-semibold appearance-none pr-8 cursor-pointer"
         >
           <option value="all">All relationships</option>
           {Object.entries(RELATIONSHIP_LABELS).map(([key, { label }]) => (
@@ -143,16 +143,16 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
         <select
           value={filterGender}
           onChange={e => setFilterGender(e.target.value)}
-          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-3 py-2 text-sm text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60"
+          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full px-4 py-2.5 text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 font-semibold appearance-none pr-8 cursor-pointer"
         >
           <option value="all">All genders</option>
           {Object.entries(GENDER_LABELS).filter(([k]) => k !== 'unspecified').map(([key, { label }]) => (
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
-        <div className="flex gap-1 flex-wrap">
+        <div className="flex gap-1.5 p-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full flex-wrap">
           {([
-            ['days_asc', 'Closest birthday'],
+            ['days_asc', 'Closest'],
             ['name_asc', 'A–Z'],
             ['age_desc', 'Age'],
             ['relationship', 'Relationship'],
@@ -162,10 +162,10 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
               key={key}
               onClick={() => toggleSort(key)}
               className={cn(
-                'px-2.5 py-1 rounded-md text-[11px] font-medium uppercase tracking-[0.02em] transition-colors',
+                'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer',
                 sort === key
-                  ? 'bg-[#3B82F6] text-white'
-                  : 'text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.06)]'
+                  ? 'bg-[#3B82F6] text-white shadow-sm border-t border-[rgba(255,255,255,0.25)]'
+                  : 'text-gray-400 hover:text-white'
               )}
             >
               {label}
@@ -174,17 +174,22 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-[12px] border border-[rgba(255,255,255,0.08)]">
-        <table className="w-full min-w-[900px] text-left border-collapse">
+      <div 
+        className="overflow-x-auto rounded-[28px] border border-[rgba(255,255,255,0.06)] bg-[rgba(15,18,28,0.45)] backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)] no-scrollbar"
+        style={{
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
+        }}
+      >
+        <table className="w-full min-w-0 text-left border-collapse">
           <thead>
-            <tr className="border-b border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]">
+            <tr className="border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
               <th className="px-4 py-3"><SortHeader label="Person Name" active={sort === 'name_asc'} direction="asc" onClick={() => toggleSort('name_asc')} /></th>
               <th className="px-4 py-3"><SortHeader label="Age" active={sort === 'age_desc'} direction="desc" onClick={() => toggleSort('age_desc')} /></th>
-              <th className="px-4 py-3"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Gender</span></th>
-              <th className="px-4 py-3"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Zodiac</span></th>
-              <th className="px-4 py-3"><SortHeader label="Relationship" active={sort === 'relationship'} direction="asc" onClick={() => toggleSort('relationship')} /></th>
+              <th className="px-4 py-3 hidden md:table-cell"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Gender</span></th>
+              <th className="px-4 py-3 hidden lg:table-cell"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Zodiac</span></th>
+              <th className="px-4 py-3 hidden sm:table-cell"><SortHeader label="Relationship" active={sort === 'relationship'} direction="asc" onClick={() => toggleSort('relationship')} /></th>
               <th className="px-4 py-3"><SortHeader label="Next birthday" active={sort === 'days_asc'} direction="asc" onClick={() => toggleSort('days_asc')} /></th>
-              <th className="px-4 py-3"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Birthday</span></th>
+              <th className="px-4 py-3 hidden lg:table-cell"><span className="text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Birthday</span></th>
             </tr>
           </thead>
           <tbody>
@@ -222,16 +227,16 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                       <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden md:table-cell">
                     <TagPill color={gender.color}>{gender.label}</TagPill>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden lg:table-cell">
                     <TagPill color={zodiac.color}>
                       <span>{zodiac.glyph}</span>
                       <span>{row.zodiac}</span>
                     </TagPill>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <span className="text-[13px] text-[rgba(255,255,255,0.7)]">
                       {rel.emoji} {rel.label}
                     </span>
@@ -246,7 +251,7 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                       <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
+                  <td className="px-4 py-3 hidden lg:table-cell font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
                     {row.birthdate ? format(parseISO(row.birthdate), 'MMMM d, yyyy') : '—'}
                   </td>
                 </tr>

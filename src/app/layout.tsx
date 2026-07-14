@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Nudge without nagging.",
 };
 
+import { LiquidGlassEffects } from "@/components/ui/LiquidGlassEffects";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col relative bg-[#050609]">
+        <LiquidGlassEffects />
+        {children}
+      </body>
     </html>
   );
 }

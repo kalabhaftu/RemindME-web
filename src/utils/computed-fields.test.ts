@@ -47,7 +47,7 @@ describe('Computed Fields', () => {
       const item: ReminderItemWithDetails = {
         id: '1', user_id: 'u1', category: 'task', name: 'Test task',
         created_at: '', updated_at: '',
-        task_details: [{ due_at: '2026-07-15T12:00:00Z' }]
+        task_details: { due_at: '2026-07-15T12:00:00Z' }
       };
       const start = new Date('2026-07-01T00:00:00Z');
       const end = new Date('2026-07-31T00:00:00Z');
@@ -63,7 +63,7 @@ describe('Computed Fields', () => {
       const item: ReminderItemWithDetails = {
         id: '2', user_id: 'u1', category: 'person', name: 'Leapling',
         created_at: '', updated_at: '',
-        person_details: [{ birthdate: '2000-02-29' }]
+        person_details: { birthdate: '2000-02-29' }
       };
       
       // Test non-leap year (2023)
@@ -81,7 +81,7 @@ describe('Computed Fields', () => {
       const item: ReminderItemWithDetails = {
         id: '3', user_id: 'u1', category: 'task', name: 'Completed task',
         created_at: '', updated_at: '',
-        task_details: [{ due_at: '2026-07-05T12:00:00Z' }],
+        task_details: { due_at: '2026-07-05T12:00:00Z' },
         escalation_state: [
           { occurrence_date: '2026-07-05', marked_done_at: '2026-07-05T14:00:00Z' }
         ]

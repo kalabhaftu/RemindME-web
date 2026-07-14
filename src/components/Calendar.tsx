@@ -47,14 +47,14 @@ function DayDots({ dayOccurrences }: { dayOccurrences: ReminderOccurrence[] }) {
 function ViewToggle({ view, onViewChange }: { view: CalendarView; onViewChange?: (v: CalendarView) => void }) {
   if (!onViewChange) return null
   return (
-    <div className="flex gap-1 bg-[rgba(255,255,255,0.03)] rounded-lg p-0.5">
+    <div className="flex gap-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full p-1">
       {(['month', 'week', 'agenda'] as CalendarView[]).map(v => (
         <button
           key={v}
           onClick={() => onViewChange(v)}
           className={cn(
-            'px-2 py-1 rounded text-[11px] font-medium uppercase tracking-[0.02em] transition-colors capitalize',
-            view === v ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.5)] hover:text-white'
+            'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 capitalize cursor-pointer',
+            view === v ? 'bg-[#3B82F6] text-white shadow-sm border-t border-[rgba(255,255,255,0.2)]' : 'text-[rgba(255,255,255,0.5)] hover:text-white'
           )}
         >
           {v}
@@ -97,19 +97,34 @@ export function Calendar({
     : format(currentDate, 'MMMM yyyy')
 
   return (
-    <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-6">
+    <div 
+      className="bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] p-6 backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+      style={{
+        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
+      }}
+    >
       <div className="flex items-center justify-between mb-6 gap-2">
-        <h2 className="text-[15px] font-medium text-[rgba(255,255,255,0.92)]">{headerLabel}</h2>
+        <h2 className="text-[14px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.85)]">{headerLabel}</h2>
         <div className="flex items-center gap-2">
           <ViewToggle view={view} onViewChange={onViewChange} />
-          <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.6)]">&lt;</button>
-          <button onClick={() => navigate(1)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.6)]">&gt;</button>
+          <button 
+            onClick={() => navigate(-1)} 
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.8)] transition-all cursor-pointer active:scale-90"
+          >
+            &lt;
+          </button>
+          <button 
+            onClick={() => navigate(1)} 
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.8)] transition-all cursor-pointer active:scale-90"
+          >
+            &gt;
+          </button>
         </div>
       </div>
 
       {view === 'month' && (
         <>
-          <div className="grid grid-cols-7 gap-2 text-center text-[12px] font-mono text-[rgba(255,255,255,0.6)] mb-2">
+          <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.4)] mb-3">
             {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => <div key={i}>{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-2">
@@ -123,11 +138,11 @@ export function Calendar({
                   key={i}
                   onClick={() => onSelectDate(day)}
                   className={cn(
-                    'aspect-square relative flex flex-col items-center justify-start pt-2 rounded-xl text-[13px] font-medium transition-colors',
-                    isCurrentMonth ? 'text-[rgba(255,255,255,0.92)]' : 'text-[rgba(255,255,255,0.3)]',
-                    isTodayDate && 'shadow-[0_0_0_2px_#3B82F6]',
-                    !isTodayDate && 'hover:bg-[rgba(255,255,255,0.06)]',
-                    isSelected && !isTodayDate && 'bg-[rgba(255,255,255,0.1)]'
+                    'aspect-square relative flex flex-col items-center justify-start pt-2 rounded-xl text-[12px] font-bold transition-all cursor-pointer',
+                    isCurrentMonth ? 'text-[rgba(255,255,255,0.92)]' : 'text-[rgba(255,255,255,0.25)]',
+                    isTodayDate && 'bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border border-[#3b82f6]/40',
+                    !isTodayDate && 'hover:bg-[rgba(255,255,255,0.06)] border border-transparent',
+                    isSelected && !isTodayDate && 'bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.15)]'
                   )}
                 >
                   <span>{format(day, 'd')}</span>
@@ -150,13 +165,13 @@ export function Calendar({
                 key={i}
                 onClick={() => onSelectDate(day)}
                 className={cn(
-                  'min-h-[80px] relative flex flex-col items-center pt-2 pb-6 rounded-xl text-[13px] font-medium transition-colors',
-                  isTodayDate && 'shadow-[0_0_0_2px_#3B82F6]',
-                  !isTodayDate && 'hover:bg-[rgba(255,255,255,0.06)]',
-                  isSelected && !isTodayDate && 'bg-[rgba(255,255,255,0.1)]'
+                  'min-h-[80px] relative flex flex-col items-center pt-2 pb-6 rounded-xl text-[12px] font-bold transition-all cursor-pointer',
+                  isTodayDate && 'bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border border-[#3b82f6]/40',
+                  !isTodayDate && 'hover:bg-[rgba(255,255,255,0.06)] border border-transparent',
+                  isSelected && !isTodayDate && 'bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.15)]'
                 )}
               >
-                <span className="text-[10px] font-mono text-[rgba(255,255,255,0.45)]">{format(day, 'EEE')}</span>
+                <span className="text-[9px] uppercase tracking-wider font-mono text-[rgba(255,255,255,0.45)]">{format(day, 'EEE')}</span>
                 <span className="mt-1">{format(day, 'd')}</span>
                 <DayDots dayOccurrences={dayOccurrences} />
               </button>
@@ -166,9 +181,9 @@ export function Calendar({
       )}
 
       {view === 'agenda' && (
-        <div className="space-y-2 max-h-[320px] overflow-y-auto">
+        <div className="space-y-2 max-h-[320px] overflow-y-auto no-scrollbar">
           {agendaDays.length === 0 ? (
-            <p className="text-[13px] text-[rgba(255,255,255,0.38)] text-center py-8">No events in the next 2 weeks.</p>
+            <p className="text-[12px] text-[rgba(255,255,255,0.38)] text-center py-8">No events in the next 2 weeks.</p>
           ) : (
             agendaDays.map(day => {
               const dayOccurrences = occurrences.filter(occ => isSameDay(occ.date, day))
@@ -176,15 +191,15 @@ export function Calendar({
                 <button
                   key={day.toISOString()}
                   onClick={() => onSelectDate(day)}
-                  className="w-full text-left p-3 rounded-lg hover:bg-[rgba(255,255,255,0.04)] transition-colors"
+                  className="w-full text-left p-3.5 rounded-2xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.06)] transition-all cursor-pointer"
                 >
-                  <div className="text-[12px] font-mono text-[rgba(255,255,255,0.45)] mb-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.45)] mb-2">
                     {isToday(day) ? 'Today' : format(day, 'EEE, MMM d')}
                   </div>
                   {dayOccurrences.map((occ, i) => (
                     <div key={i} className="flex items-center gap-2 py-1">
                       <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: occ.item.color_accent || '#3B82F6' }} />
-                      <span className="text-[13px] text-[rgba(255,255,255,0.85)] truncate">{occ.item.name}</span>
+                      <span className="text-[12px] text-[rgba(255,255,255,0.85)] truncate">{occ.item.name}</span>
                     </div>
                   ))}
                 </button>

@@ -42,22 +42,29 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <input
         type="text"
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder="Search subscriptions..."
-        className="w-full max-w-sm px-4 py-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] text-sm focus:outline-none focus:border-[#3B82F6]/60"
+        className="w-full max-w-sm px-5 py-2.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-medium"
       />
 
-      <div className="overflow-x-auto rounded-[12px] border border-[rgba(255,255,255,0.08)]">
-        <table className="w-full min-w-[700px] text-left border-collapse">
+      <div 
+        className="overflow-x-auto rounded-[28px] border border-[rgba(255,255,255,0.06)] bg-[rgba(15,18,28,0.45)] backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)] no-scrollbar"
+        style={{
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
+        }}
+      >
+        <table className="w-full min-w-0 text-left border-collapse">
           <thead>
-            <tr className="border-b border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]">
-              {['Service', 'Renewal', 'Amount', 'Days left', 'Cycle'].map(h => (
-                <th key={h} className="px-4 py-3 text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">{h}</th>
-              ))}
+            <tr className="border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
+              <th className="px-4 py-3 text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Service</th>
+              <th className="px-4 py-3 text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)] hidden sm:table-cell">Renewal</th>
+              <th className="px-4 py-3 text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Amount</th>
+              <th className="px-4 py-3 text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Days left</th>
+              <th className="px-4 py-3 text-[11px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)] hidden md:table-cell">Cycle</th>
             </tr>
           </thead>
           <tbody>
@@ -78,7 +85,7 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
                       <span className="text-[14px] font-medium text-[rgba(255,255,255,0.92)]">{item.name}</span>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
+                  <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)] hidden sm:table-cell">
                     {s?.renewal_date ? format(parseISO(s.renewal_date), 'MMM d, yyyy') : '—'}
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] text-[rgba(255,255,255,0.6)]">
@@ -91,7 +98,7 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
                       <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-[13px] capitalize text-[rgba(255,255,255,0.6)]">{s?.cycle ?? 'monthly'}</td>
+                  <td className="px-4 py-3 text-[13px] capitalize text-[rgba(255,255,255,0.6)] hidden md:table-cell">{s?.cycle ?? 'monthly'}</td>
                 </tr>
               )
             })}

@@ -80,85 +80,91 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4 border-b border-[rgba(255,255,255,0.08)] pb-4">
-        <button 
-          onClick={() => setFilter('3d')}
-          className={`text-[12px] font-medium uppercase tracking-[0.02em] px-3 py-1.5 rounded-md transition-colors ${filter === '3d' ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'}`}
-        >
-          Next 3 Days
-        </button>
-        <button 
-          onClick={() => setFilter('7d')}
-          className={`text-[12px] font-medium uppercase tracking-[0.02em] px-3 py-1.5 rounded-md transition-colors ${filter === '7d' ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'}`}
-        >
-          Next 7 Days
-        </button>
-        <button 
-          onClick={() => setFilter('month')}
-          className={`text-[12px] font-medium uppercase tracking-[0.02em] px-3 py-1.5 rounded-md transition-colors ${filter === 'month' ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'}`}
-        >
-          This Month
-        </button>
-        <button 
-          onClick={() => setFilter('all')}
-          className={`text-[12px] font-medium uppercase tracking-[0.02em] px-3 py-1.5 rounded-md transition-colors ${filter === 'all' ? 'bg-[#3B82F6] text-white' : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'}`}
-        >
-          All Upcoming
-        </button>
+      <div className="flex gap-2 p-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full max-w-max flex-wrap">
+        {[
+          { key: '3d', label: '3 Days' },
+          { key: '7d', label: '7 Days' },
+          { key: 'month', label: 'Month' },
+          { key: 'all', label: 'All' },
+        ].map(opt => (
+          <button 
+            key={opt.key}
+            onClick={() => setFilter(opt.key as '3d' | '7d' | 'month' | 'all')}
+            className={`text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all duration-300 cursor-pointer ${
+              filter === opt.key 
+                ? 'bg-[#3B82F6] text-white shadow-sm border-t border-[rgba(255,255,255,0.25)]' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {occurrences.length === 0 ? (
-          <div className="p-12 text-center bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-[12px] flex flex-col items-center justify-center">
-            <Circle size={32} className="text-[rgba(255,255,255,0.1)] mb-4" />
-            <h3 className="text-[15px] font-medium text-[rgba(255,255,255,0.6)] mb-1">All caught up</h3>
-            <p className="text-[13px] text-[rgba(255,255,255,0.38)]">No upcoming reminders for this period.</p>
+          <div 
+            className="p-12 text-center bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] backdrop-blur-[20px] flex flex-col items-center justify-center"
+            style={{
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
+            }}
+          >
+            <Circle size={32} className="text-[rgba(255,255,255,0.15)] mb-4" />
+            <h3 className="text-[14px] font-bold text-[rgba(255,255,255,0.6)] mb-1">All Caught Up</h3>
+            <p className="text-[12px] text-[rgba(255,255,255,0.38)]">No upcoming reminders for this period.</p>
           </div>
         ) : (
           occurrences.map((occ, idx) => (
-            <div key={`${occ.item.id}-${idx}`} className="p-5 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] rounded-[12px] flex justify-between items-center hover:bg-[rgba(255,255,255,0.1)] transition-colors group">
+            <div 
+              key={`${occ.item.id}-${idx}`} 
+              className="p-5 bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[24px] backdrop-blur-[20px] flex justify-between items-center hover:bg-[rgba(255,255,255,0.08)] transition-all group shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+              style={{
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
+              }}
+            >
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div 
                     className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: occ.item.color_accent || '#3B82F6' }}
                   />
-                  <span className="text-[12px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.5)]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.45)] font-mono">
                     {getRelativeTimeText(occ.date)}
                   </span>
                 </div>
-                <h3 className="font-medium text-[rgba(255,255,255,0.92)] text-[15px] leading-[1.5]">{occ.item.name}</h3>
+                <h3 className="font-bold text-white text-[15px] leading-[1.5]">{occ.item.name}</h3>
                 {renderItemDetails(occ)}
               </div>
-              <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              
+              <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 {occ.item.category === 'task' && occ.status !== 'completed-past' && (
                   <button 
                     onClick={() => onMarkDone(occ.item.id, format(occ.date, 'yyyy-MM-dd'))} 
-                    className="text-[rgba(255,255,255,0.38)] hover:text-[#34D399] transition-colors"
+                    className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30 text-[rgba(255,255,255,0.6)] flex items-center justify-center transition-all cursor-pointer"
                     title="Mark Done"
                   >
-                    <Circle size={20} />
+                    <CheckCircle2 size={16} />
                   </button>
                 )}
                 {occ.status === 'completed-past' && (
-                  <CheckCircle2 size={20} className="text-[#34D399]" />
+                  <CheckCircle2 size={20} className="text-[#34D399] mx-1.5" />
                 )}
                 {occ.status !== 'completed-past' && (
                   <button
                     onClick={() => handleSnooze(occ.item.id, format(occ.date, 'yyyy-MM-dd'))}
                     disabled={snoozing === `${occ.item.id}-${format(occ.date, 'yyyy-MM-dd')}`}
-                    className="text-[rgba(255,255,255,0.38)] hover:text-[#F59E0B] transition-colors disabled:opacity-30"
+                    className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-amber-500/20 hover:text-amber-400 hover:border-amber-500/30 text-[rgba(255,255,255,0.6)] flex items-center justify-center transition-all disabled:opacity-30 cursor-pointer"
                     title="Snooze 1 hour"
                   >
-                    <BellRing size={20} />
+                    <BellRing size={16} />
                   </button>
                 )}
                 <Link
                   href={getEditHref(occ.item)}
-                  className="text-[rgba(255,255,255,0.38)] hover:text-white transition-colors"
+                  className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.6)] flex items-center justify-center transition-all"
                   title="Edit"
                 >
-                  <Edit2 size={20} />
+                  <Edit2 size={14} />
                 </Link>
               </div>
             </div>
