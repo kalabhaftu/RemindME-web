@@ -190,7 +190,11 @@ serve(async (req) => {
                 serviceAccount,
                 cd.encrypted_token,
                 msg.title,
-                msg.body
+                msg.body,
+                {
+                  category: item.category,
+                  reminder_item_id: item.reminder_item_id,
+                }
               )
             )
           );
