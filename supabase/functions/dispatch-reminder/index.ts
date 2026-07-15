@@ -12,6 +12,34 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
+function formatFriendlyDate(dateStr: string): string {
+  if (!dateStr) return ''
+  const d = new Date(dateStr + 'T12:00:00Z')
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })
+}
+
+function buildNotification(item: any): { title: string; body: string; html: string; tgText: string } {
+  const date = formatFriendlyDate(item.occurrence_date)
+  const time = item.custom_time ? item.custom_time.slice(0, 5) : null
+  const dateTime = date + (time ? ` at ${time}` : '')
+  const notes = item.notes ? `\n\n${item.notes}` : ''
+
+  const title = `📅 ${item.name}`
+  const body = `Due ${dateTime}${notes}`
+
+  const html = `<div style="font-family: -apple-system, sans-serif; padding: 20px;">
+    <h2 style="color: #333; margin: 0 0 8px;">📅 ${item.name}</h2>
+    <p style="color: #666; margin: 0 0 4px;"><strong>Due:</strong> ${dateTime}</p>
+    ${item.notes ? `<p style="color: #555; margin: 8px 0 0;"><strong>Notes:</strong><br>${item.notes.replace(/\n/g, '<br>')}</p>` : ''}
+    <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
+    <p style="color: #999; font-size: 12px;">Sent by RemindME</p>
+  </div>`
+
+  const tgText = `📅 *${item.name}*\n_Due: ${dateTime}_${item.notes ? `\n\n${item.notes}` : ''}`
+
+  return { title, body, html, tgText }
+}
+
 serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
@@ -39,26 +67,22 @@ serve(async (req) => {
     for (const item of dueItems) {
       let status = 'failed'
       let errorMessage = null
+      const msg = buildNotification(item)
 
       try {
         if (item.channel === 'in_app') {
-          // Insert into in_app_notifications
           const { error: inAppError } = await supabase.from('in_app_notifications').insert({
             user_id: item.user_id,
             reminder_item_id: item.reminder_item_id,
-            title: `Reminder: ${item.name}`,
-            body: item.notes || `You have a reminder for ${item.name}`
+            title: msg.title,
+            body: msg.body
           })
           if (inAppError) throw new Error(`In-app insertion failed: ${inAppError.message}`)
-          
           status = 'sent'
         } else if (item.channel === 'email') {
           if (!resendApiKey) throw new Error('Resend API key missing')
-          
-          // Get user email
           const { data: userData } = await supabase.auth.admin.getUserById(item.user_id)
           const userEmail = userData?.user?.email
-
           if (userEmail) {
             const res = await fetch('https://api.resend.com/emails', {
               method: 'POST',
@@ -69,11 +93,10 @@ serve(async (req) => {
               body: JSON.stringify({
                 from: 'RemindME <onboarding@resend.dev>',
                 to: userEmail,
-                subject: `Reminder: ${item.name}`,
-                html: `<p>This is a reminder for <strong>${item.name}</strong>.</p>${item.notes ? `<p>Notes: ${item.notes}</p>` : ''}`
+                subject: msg.title,
+                html: msg.html
               }),
             })
-            
             if (res.ok) {
               status = 'sent'
             } else {
@@ -133,7 +156,7 @@ serve(async (req) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               chat_id: chatId,
-              text: `🔔 Reminder: *${item.name}*\n${item.notes || 'You have a pending reminder.'}`,
+              text: msg.tgText,
               parse_mode: 'Markdown',
             })
           });
@@ -145,7 +168,6 @@ serve(async (req) => {
 
           status = 'sent';
         } else if (item.channel === 'push') {
-          // 1. Fetch user's push tokens (FCM device tokens)
           const { data: channelData, error: dbError } = await supabase
             .from('notification_channels')
             .select('encrypted_token')
@@ -161,23 +183,22 @@ serve(async (req) => {
             throw new Error('FIREBASE_SERVICE_ACCOUNT is not configured on the backend');
           }
 
-          // 2. Send to all devices via FCM
           const { sendFcmNotification } = await import('./fcm.ts');
-          const results = await Promise.allSettled(
+          const fcmResults = await Promise.allSettled(
             channelData.map((cd) =>
               sendFcmNotification(
                 serviceAccount,
                 cd.encrypted_token,
-                `Reminder: ${item.name}`,
-                item.notes || 'You have a pending reminder.'
+                msg.title,
+                msg.body
               )
             )
           );
 
-          const failed = results.filter((r) => r.status === 'rejected');
+          const failed = fcmResults.filter((r) => r.status === 'rejected');
           if (failed.length > 0) {
             failed.forEach((r: any) => console.error('FCM delivery failure:', r.reason));
-            if (failed.length === results.length) {
+            if (failed.length === fcmResults.length) {
               throw new Error(`All push deliveries failed (${failed.length} devices)`);
             }
           }

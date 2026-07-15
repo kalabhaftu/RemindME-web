@@ -54,7 +54,7 @@ serve(async (req) => {
       let errorMessage: string | null = null
 
       try {
-        const messageBody = `Have you checked "${item.name}"? Did you finish it?`
+        const messageBody = `⏰ Follow-up: "${item.name}" hasn't been marked done yet. Did you finish it?`
 
         const { data: channelData, error: dbError } = await supabase
           .from('notification_channels')
