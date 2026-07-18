@@ -51,10 +51,9 @@ async function resolveDomain(query: string): Promise<string | null> {
 
 async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; contentType: string } | null> {
   const fetchUrls = [
+    `https://icon.horse/icon/${domain}`,
     `https://cdn.brandfetch.io/${domain}/w/400/h/400`,
-    `https://logo.clearbit.com/${domain}`,
     `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-    `https://icon.horse/icon/${domain}`, // excellent fallback
   ];
 
   for (const url of fetchUrls) {
