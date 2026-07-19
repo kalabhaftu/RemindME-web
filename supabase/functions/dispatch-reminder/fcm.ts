@@ -18,6 +18,7 @@ function pemToDer(pem: string): ArrayBuffer {
   const cleanPem = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
     .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\\n/g, "")
     .replace(/\s+/g, "");
   
   const raw = atob(cleanPem);
@@ -29,8 +30,29 @@ function pemToDer(pem: string): ArrayBuffer {
   return buffer;
 }
 
+function parseServiceAccount(str: string): any {
+  let clean = str.trim()
+  if (clean.length > 1 &&
+      ((clean[0] === "'" && clean[clean.length - 1] === "'") ||
+       (clean[0] === '"' && clean[clean.length - 1] === '"'))) {
+    clean = clean.slice(1, -1)
+  }
+  try {
+    return JSON.parse(clean)
+  } catch {}
+  const noNewlines = clean.replace(/[\r\n]+/g, ' ')
+  try {
+    return JSON.parse(noNewlines)
+  } catch {
+    throw new Error(
+      'Failed to parse FIREBASE_SERVICE_ACCOUNT. Verify the env var is valid JSON. ' +
+      `Raw length: ${clean.length}`
+    )
+  }
+}
+
 export async function getAccessToken(serviceAccountJsonStr: string): Promise<string> {
-  const sa = JSON.parse(serviceAccountJsonStr);
+  const sa = parseServiceAccount(serviceAccountJsonStr);
   const der = pemToDer(sa.private_key);
   
   const key = await crypto.subtle.importKey(
@@ -93,7 +115,7 @@ export async function sendFcmNotification(
   body: string,
   data?: Record<string, string>
 ): Promise<void> {
-  const sa = JSON.parse(serviceAccountJsonStr);
+  const sa = parseServiceAccount(serviceAccountJsonStr);
   const accessToken = await getAccessToken(serviceAccountJsonStr);
   const projectId = sa.project_id;
 

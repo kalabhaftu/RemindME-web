@@ -18,6 +18,7 @@ function pemToDer(pem: string): ArrayBuffer {
   const cleanPem = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
     .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\\n/g, "")
     .replace(/\s+/g, "");
   
   const raw = atob(cleanPem);
