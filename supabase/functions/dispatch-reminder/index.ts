@@ -170,7 +170,6 @@ serve(async (req) => {
             body: JSON.stringify({
               chat_id: chatId,
               text: msg.tgText,
-              parse_mode: 'Markdown',
             })
           });
 

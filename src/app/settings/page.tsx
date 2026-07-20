@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download } from 'lucide-react'
+import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download, CalendarDays, Copy, ExternalLink, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
@@ -26,6 +26,8 @@ export default function SettingsPage() {
   const [nudgeDelayHours, setNudgeDelayHours] = useState(4)
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [calendarUrl, setCalendarUrl] = useState<string | null>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -93,6 +95,10 @@ export default function SettingsPage() {
       }
     }
     registerPush()
+
+    fetch('/api/calendar/feed-url')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setCalendarUrl(data?.webcalUrl ?? null))
 
     // Load delivery logs
     supabase.from('delivery_log').select('*').order('scheduled_for', { ascending: false }).limit(10)
@@ -287,7 +293,11 @@ export default function SettingsPage() {
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
         try {
-          const res = await fetch('/api/account', { method: 'DELETE' })
+          const res = await fetch('/api/account', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirmation: 'DELETE' }),
+          })
           if (res.ok) {
             await supabaseRef.current.auth.signOut()
             router.push('/login')
@@ -317,6 +327,29 @@ export default function SettingsPage() {
     } catch {
       showToast('Failed to export data', 'error')
     }
+  }
+
+  const importData = async (file: File) => {
+    try {
+      if (!file.name.toLowerCase().endsWith('.json')) throw new Error('Only JSON exports are supported')
+      const res = await fetch('/api/account/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: await file.text(),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Import failed')
+      showToast(`Imported ${data.imported} reminders; skipped ${data.skipped} duplicates`, 'success')
+      router.refresh()
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Import failed', 'error')
+    }
+  }
+
+  const copyCalendarUrl = async () => {
+    if (!calendarUrl) return
+    await navigator.clipboard.writeText(calendarUrl)
+    showToast('Webcal link copied', 'success')
   }
 
   const logoutAllDevices = async () => {
@@ -629,6 +662,25 @@ export default function SettingsPage() {
           )}
         </section>
 
+        <section className="rm-surface rounded-[28px] p-6">
+          <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><CalendarDays size={20} className="text-[#A78BFA]" /> Calendar subscription</h2>
+          <p className="text-xs text-[var(--text-secondary)] mb-5 leading-relaxed">Subscribe once; calendar apps refresh this read-only feed with your reminder dates.</p>
+          <div className="flex gap-3 flex-wrap">
+            <button type="button" onClick={copyCalendarUrl} disabled={!calendarUrl} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 disabled:opacity-40"><Copy size={14} /> Copy webcal link</button>
+            {calendarUrl && <a href={calendarUrl} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><ExternalLink size={14} /> Open calendar app</a>}
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <details className="rm-control rounded-2xl p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-white">Google Calendar</summary>
+              <p className="mt-3 text-xs leading-6 text-[var(--text-secondary)]">On desktop: Google Calendar → Other calendars → + → From URL → paste the webcal link → Add calendar.</p>
+            </details>
+            <details className="rm-control rounded-2xl p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-white">Outlook Calendar</summary>
+              <p className="mt-3 text-xs leading-6 text-[var(--text-secondary)]">Open Outlook Calendar → Add calendar → Subscribe from web → paste the link → Import/Subscribe.</p>
+            </details>
+          </div>
+        </section>
+
         {/* Account & Sessions */}
         <section 
           className="bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] p-6 backdrop-blur-[20px]"
@@ -663,6 +715,13 @@ export default function SettingsPage() {
                 className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-2"
               >
                 <Download size={14} className="text-[#3B82F6]" /> Export Data
+              </button>
+              <input ref={importInputRef} type="file" accept="application/json,.json" className="hidden" onChange={e => e.target.files?.[0] && importData(e.target.files[0])} />
+              <button
+                onClick={() => importInputRef.current?.click()}
+                className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-2"
+              >
+                <Upload size={14} className="text-[#3B82F6]" /> Import JSON
               </button>
               <button
                 onClick={logoutAllDevices}

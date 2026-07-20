@@ -23,12 +23,34 @@ firebase.initializeApp({
 var messaging = firebase.messaging()
 
 messaging.onBackgroundMessage(function (payload) {
-  var notification = payload.notification || {}
+  var notification = payload.notification || payload.data || {}
+  var reminderId = notification.reminder_item_id
+  var category = notification.category
+  var path = '/notifications'
+  if (reminderId && category === 'person') path = '/people/' + reminderId + '/edit'
+  if (reminderId && category === 'subscription') path = '/subscriptions/' + reminderId + '/edit'
+  if (reminderId && category === 'task') path = '/tasks/' + reminderId + '/edit'
+  if (reminderId && category === 'custom_holiday') path = '/holidays/' + reminderId + '/edit'
   self.registration.showNotification(notification.title || 'RemindME', {
     body: notification.body || '',
     icon: '/icon.png',
     badge: '/favicon.ico',
+    data: { path: path },
   })
+})
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close()
+  var path = event.notification.data && event.notification.data.path || '/notifications'
+  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+    for (var i = 0; i < clientList.length; i++) {
+      if ('focus' in clientList[i]) {
+        clientList[i].navigate(path)
+        return clientList[i].focus()
+      }
+    }
+    return clients.openWindow(path)
+  }))
 })
 `;
 

@@ -129,11 +129,7 @@ export async function sendFcmNotification(
     body: JSON.stringify({
       message: {
         token: deviceToken,
-        notification: {
-          title,
-          body,
-        },
-        data,
+        data: { ...(data ?? {}), title, body },
       },
     }),
   });

@@ -54,7 +54,6 @@ async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; conten
     `https://cdn.brandfetch.io/${domain}/w/400/h/400`,
     `https://logo.clearbit.com/${domain}`,
     `https://icon.horse/icon/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
   ];
 
   for (const url of fetchUrls) {

@@ -29,10 +29,17 @@ export async function GET(request: Request) {
       .maybeSingle()
 
     const exportData = {
+      format: 'remindme-export',
+      version: 1,
       exported_at: new Date().toISOString(),
-      user_id: user.id,
       email: user.email,
-      settings: settings ?? null,
+      settings: settings ? {
+        timezone: settings.timezone,
+        nudge_delay_hours: settings.nudge_delay_hours,
+        default_channels: settings.default_channels,
+        default_lead_time: settings.default_lead_time,
+        default_custom_time: settings.default_custom_time,
+      } : null,
       reminders: items ?? [],
     }
 

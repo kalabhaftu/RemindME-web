@@ -10,18 +10,16 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const body = await request.json().catch(() => ({})) as { confirmation?: string }
+    if (body.confirmation !== 'DELETE') {
+      return NextResponse.json({ error: 'Type DELETE to confirm account deletion' }, { status: 400 })
+    }
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { error: signOutError } = await supabaseAdmin.auth.admin.signOut(user.id, 'global');
-    if (signOutError) {
-      console.error('Revoke sessions error:', signOutError);
-      return NextResponse.json({ error: 'Failed to revoke account sessions' }, { status: 500 });
-    }
-
-    // Delete user via Auth Admin
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
     
     if (deleteError) {
