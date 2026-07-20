@@ -34,6 +34,53 @@ function escapeHtml(value: string): string {
   }[char] ?? char))
 }
 
+function formatMoney(amount: unknown, currency: unknown): string | null {
+  if (amount === null || amount === undefined || amount === '') return null
+  const numeric = Number(amount)
+  if (!Number.isFinite(numeric)) return null
+  return `${String(currency || 'USD')} ${numeric.toFixed(numeric % 1 === 0 ? 0 : 2)}`
+}
+
+function formatPlainDate(value: unknown, timezone: string): string | null {
+  if (!value) return null
+  const raw = String(value)
+  const date = raw.includes('T') ? new Date(raw) : new Date(`${raw}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return raw
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: timezone || 'UTC',
+  }).format(date)
+}
+
+function buildDetailLines(item: any): Array<{ label: string; value: string }> {
+  const details = item.details ?? {}
+  const timezone = item.timezone || 'UTC'
+  const category = String(item.category ?? '').toLowerCase()
+  const lines: Array<{ label: string; value: string }> = []
+
+  if (category === 'subscription') {
+    const price = formatMoney(details.billing_amount, details.billing_currency)
+    if (price) lines.push({ label: 'Amount', value: price })
+    if (details.cycle) lines.push({ label: 'Billing cycle', value: String(details.cycle) })
+    const renewal = formatPlainDate(details.renewal_date, timezone)
+    if (renewal) lines.push({ label: 'Renewal date', value: renewal })
+  } else if (category === 'person') {
+    const birthday = formatPlainDate(details.birthdate, timezone)
+    if (birthday) lines.push({ label: 'Birthday', value: birthday })
+    if (details.relationship) lines.push({ label: 'Relationship', value: String(details.relationship) })
+  } else if (category === 'task') {
+    if (details.due_at) lines.push({ label: 'Task time', value: formatFriendlyDateTime(String(details.due_at), timezone) })
+  } else if (category === 'custom_holiday') {
+    const holidayDate = formatPlainDate(details.holiday_date, timezone)
+    if (holidayDate) lines.push({ label: 'Holiday date', value: holidayDate })
+    if (details.country_code) lines.push({ label: 'Country', value: String(details.country_code) })
+  }
+
+  return lines
+}
+
 function buildNotification(item: any): { title: string; body: string; html: string; tgText: string } {
   const dateTime = formatFriendlyDateTime(item.event_at, item.timezone)
   const category = String(item.category ?? '').toLowerCase()
@@ -45,22 +92,30 @@ function buildNotification(item: any): { title: string; body: string; html: stri
   }
   const template = labels[category] ?? { icon: '📅', noun: 'Reminder', verb: 'is due' }
   const name = String(item.name ?? 'Reminder')
+  const detailLines = buildDetailLines(item)
   const notes = item.notes ? `\n\nNotes:\n${item.notes}` : ''
+  const plainDetails = detailLines.length
+    ? `\n\nDetails:\n${detailLines.map(line => `${line.label}: ${line.value}`).join('\n')}`
+    : ''
   const safeName = escapeHtml(String(item.name ?? 'Reminder'))
   const safeNotes = item.notes ? escapeHtml(String(item.notes)) : ''
+  const htmlDetails = detailLines.length
+    ? `<div style="color: #555; margin: 12px 0 0;">${detailLines.map(line => `<p style="margin: 4px 0;"><strong>${escapeHtml(line.label)}:</strong> ${escapeHtml(line.value)}</p>`).join('')}</div>`
+    : ''
 
   const title = `${template.icon} ${template.noun}: ${name}`
-  const body = `${name} ${template.verb} ${dateTime ? `on ${dateTime}` : ''}${notes}`
+  const body = `${name} ${template.verb} ${dateTime ? `on ${dateTime}` : ''}${plainDetails}${notes}`
 
   const html = `<div style="font-family: -apple-system, sans-serif; padding: 20px;">
     <h2 style="color: #333; margin: 0 0 8px;">${template.icon} ${template.noun}: ${safeName}</h2>
     <p style="color: #666; margin: 0 0 4px;"><strong>Due:</strong> ${dateTime}</p>
+    ${htmlDetails}
     ${item.notes ? `<p style="color: #555; margin: 8px 0 0;"><strong>Notes:</strong><br>${safeNotes.replace(/\n/g, '<br>')}</p>` : ''}
     <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
     <p style="color: #999; font-size: 12px;">Sent by RemindME</p>
   </div>`
 
-  const tgText = `${template.icon} ${template.noun}: ${name}\nDue: ${dateTime}${notes}`
+  const tgText = `${template.icon} ${template.noun}: ${name}\nDue: ${dateTime}${plainDetails}${notes}`
 
   return { title, body, html, tgText }
 }
