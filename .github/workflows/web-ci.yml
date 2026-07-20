@@ -23,4 +23,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run type-check
+      - name: Configure build environment
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://ci.invalid.supabase.co}" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-ci-build-placeholder}" >> "$GITHUB_ENV"
       - run: npm run build
