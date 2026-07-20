@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BellRing, Search, Layout, Settings, Plus, Home, Users, CreditCard, CheckSquare, Gift, MoreVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { MobileAppHint } from '@/components/MobileAppHint'
 
 const BASE_NAV_ITEMS = [
   { href: '/', label: 'Home', icon: Home },
@@ -188,6 +189,7 @@ export function AppShell({
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
+        <MobileAppHint />
         {children}
       </main>
 

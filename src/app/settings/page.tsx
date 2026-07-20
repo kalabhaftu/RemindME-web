@@ -2,12 +2,39 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download, CalendarDays, Copy, ExternalLink, Upload, Share2, MessageSquare, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download, CalendarDays, Copy, ExternalLink, Upload, Share2, MessageSquare, ShieldCheck, Users, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { AppShell } from '@/components/AppShell'
 
+type BulkContact = { name: string; birthdate?: string }
+
+function parseVCardDate(value: string): string | undefined {
+  const normalized = value.trim().replace(/^[^:]*:/, '').replace(/T.*$/, '')
+  if (/^\d{8}$/.test(normalized)) {
+    return `${normalized.slice(0, 4)}-${normalized.slice(4, 6)}-${normalized.slice(6, 8)}`
+  }
+  return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : undefined
+}
+
+function parseVCard(source: string): BulkContact[] {
+  const unfolded = source.replace(/\r?\n[ \t]/g, '')
+  return unfolded.split(/BEGIN:VCARD/i).slice(1).map(block => {
+    const fields = new Map<string, string>()
+    block.split(/\r?\n/).forEach(line => {
+      const separator = line.indexOf(':')
+      if (separator < 1) return
+      const key = line.slice(0, separator).split(';')[0].toUpperCase()
+      const value = line.slice(separator + 1).replace(/\\n/gi, ' ').replace(/\\,/g, ',').trim()
+      if (value) fields.set(key, value)
+    })
+    const name = fields.get('FN') || fields.get('N')?.split(';').filter(Boolean).reverse().join(' ')
+    if (!name) return null
+    const birthdate = fields.get('BDAY') ? parseVCardDate(fields.get('BDAY')!) : undefined
+    return birthdate ? { name, birthdate } : { name }
+  }).filter((contact): contact is BulkContact => Boolean(contact?.name.trim()))
+}
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -27,7 +54,10 @@ export default function SettingsPage() {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [calendarUrl, setCalendarUrl] = useState<string | null>(null)
+  const [loadingCalendar, setLoadingCalendar] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
+  const contactInputRef = useRef<HTMLInputElement>(null)
+  const [importingContacts, setImportingContacts] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -316,7 +346,12 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/account/export')
       if (!res.ok) throw new Error('Export failed')
-      const blob = await res.blob()
+      const payload = await res.json()
+      if (!Array.isArray(payload.reminders) || payload.reminders.length === 0) {
+        showToast('There are no reminders to export yet.', 'error')
+        return
+      }
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -339,6 +374,10 @@ export default function SettingsPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Import failed')
+      if (!data.imported && !data.skipped) {
+        showToast('This JSON file contains no reminders.', 'error')
+        return
+      }
       showToast(`Imported ${data.imported} reminders; skipped ${data.skipped} duplicates`, 'success')
       router.refresh()
     } catch (error) {
@@ -346,10 +385,48 @@ export default function SettingsPage() {
     }
   }
 
+  const importContacts = async (file: File) => {
+    setImportingContacts(true)
+    try {
+      if (!/\.(vcf|vcard)$/i.test(file.name)) throw new Error('Choose a .vcf contact export')
+      const contacts = parseVCard(await file.text())
+      if (!contacts.length) throw new Error('No contacts found in this file')
+      const res = await fetch('/api/contacts/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contacts }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Contact import failed')
+      showToast(`Imported ${data.imported}; birthdays found: ${data.withBirthday}; missing: ${data.withoutBirthday}; duplicates skipped: ${data.skipped}`, 'success')
+      router.refresh()
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Contact import failed', 'error')
+    } finally {
+      setImportingContacts(false)
+      if (contactInputRef.current) contactInputRef.current.value = ''
+    }
+  }
+
   const copyCalendarUrl = async () => {
     if (!calendarUrl) return
     await navigator.clipboard.writeText(calendarUrl)
     showToast('Webcal link copied', 'success')
+  }
+
+  const rotateCalendarUrl = async () => {
+    setLoadingCalendar(true)
+    try {
+      const res = await fetch('/api/calendar/feed-url', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok || !data.webcalUrl) throw new Error(data.error || 'Could not regenerate calendar link')
+      setCalendarUrl(data.webcalUrl)
+      showToast('Calendar link regenerated', 'success')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not regenerate calendar link', 'error')
+    } finally {
+      setLoadingCalendar(false)
+    }
   }
 
   const shareApp = async () => {
@@ -678,17 +755,36 @@ export default function SettingsPage() {
           <div className="flex gap-3 flex-wrap">
             <button type="button" onClick={copyCalendarUrl} disabled={!calendarUrl} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 disabled:opacity-40"><Copy size={14} /> Copy webcal link</button>
             {calendarUrl && <a href={calendarUrl} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><ExternalLink size={14} /> Open calendar app</a>}
+            <button type="button" onClick={rotateCalendarUrl} disabled={loadingCalendar} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 disabled:opacity-40"><RefreshCw size={14} /> {loadingCalendar ? 'Regenerating…' : 'Regenerate link'}</button>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <details className="rm-control rounded-2xl p-4">
               <summary className="cursor-pointer text-sm font-semibold text-white">Google Calendar</summary>
-              <p className="mt-3 text-xs leading-6 text-[var(--text-secondary)]">On desktop: Google Calendar → Other calendars → + → From URL → paste the webcal link → Add calendar.</p>
+              <ol className="mt-3 list-decimal pl-5 text-xs leading-6 text-[var(--text-secondary)]">
+                <li>Open Google Calendar.</li>
+                <li>Open Other calendars and choose Add by URL.</li>
+                <li>Paste the copied webcal link and add the calendar.</li>
+              </ol>
             </details>
             <details className="rm-control rounded-2xl p-4">
               <summary className="cursor-pointer text-sm font-semibold text-white">Outlook Calendar</summary>
-              <p className="mt-3 text-xs leading-6 text-[var(--text-secondary)]">Open Outlook Calendar → Add calendar → Subscribe from web → paste the link → Import/Subscribe.</p>
+              <ol className="mt-3 list-decimal pl-5 text-xs leading-6 text-[var(--text-secondary)]">
+                <li>Open Outlook Calendar.</li>
+                <li>Choose Add calendar and Subscribe from web.</li>
+                <li>Paste the copied webcal link and subscribe.</li>
+              </ol>
             </details>
           </div>
+        </section>
+
+        <section className="rm-surface rounded-[28px] p-6">
+          <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Users size={20} className="text-[#A78BFA]" /> Import all contacts</h2>
+          <p className="text-xs text-[var(--text-secondary)] mb-5 leading-relaxed">Export your contacts once as a vCard file, then import the whole file here. RemindME checks every contact for a birthday, creates people with or without birthday data, and skips duplicate names.</p>
+          <input ref={contactInputRef} type="file" accept=".vcf,.vcard,text/vcard" className="hidden" onChange={e => e.target.files?.[0] && importContacts(e.target.files[0])} />
+          <button type="button" disabled={importingContacts} onClick={() => contactInputRef.current?.click()} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 disabled:opacity-40">
+            <Upload size={14} /> {importingContacts ? 'Importing contacts…' : 'Choose contact export'}
+          </button>
+          <p className="text-[11px] text-[var(--text-tertiary)] mt-3">The web app accepts vCard files so your browser never grants RemindME access to your full address book.</p>
         </section>
 
         <section className="rm-surface rounded-[28px] p-6">
@@ -732,8 +828,8 @@ export default function SettingsPage() {
             )}
 
             <div className="flex gap-4 flex-wrap">
-              <button
-                onClick={exportData}
+                <button
+                  onClick={exportData}
                 className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.08)] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-2"
               >
                 <Download size={14} className="text-[#3B82F6]" /> Export Data
