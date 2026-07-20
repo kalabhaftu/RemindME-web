@@ -793,7 +793,7 @@ export default function SettingsPage() {
           <p className="text-[11px] text-[rgba(255,255,255,0.42)] mb-4">Version {process.env.NEXT_PUBLIC_APP_VERSION || 'web'}</p>
           <div className="flex flex-wrap gap-3">
             <button type="button" onClick={shareApp} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><Share2 size={14} /> Share RemindME</button>
-            <a href="mailto:?subject=RemindME%20feedback" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><MessageSquare size={14} /> Send feedback</a>
+            <a href="mailto:kalabhaftu1@gmail.com?subject=RemindME%20feedback" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><MessageSquare size={14} /> Send feedback</a>
             <a href="/terms" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2">Terms</a>
             <a href="/privacy" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2">Privacy</a>
           </div>
