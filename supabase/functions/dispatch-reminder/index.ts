@@ -115,7 +115,12 @@ function buildNotification(item: any): { title: string; body: string; html: stri
     <p style="color: #999; font-size: 12px;">Sent by RemindME</p>
   </div>`
 
-  const tgText = `${template.icon} ${template.noun}: ${name}\nDue: ${dateTime}${plainDetails}${notes}`
+  const tgDetails = detailLines.length
+    ? '\n' + detailLines.map(line => `<b>${escapeHtml(line.label)}:</b> ${escapeHtml(line.value)}`).join('\n')
+    : ''
+
+  const tgText = `<b>${template.icon} ${template.noun}: ${safeName}</b>
+<b>Due:</b> ${dateTime}${tgDetails}${item.notes ? `\n\n<b>Notes:</b>\n${safeNotes}` : ''}`
 
   return { title, body, html, tgText }
 }
@@ -215,8 +220,8 @@ serve(async (req) => {
             const { decrypt } = await import('./encryption.ts');
             channelData.encrypted_token = decrypt(channelData.encrypted_token, encryptionKey);
             if (!/^\d+:[A-Za-z0-9_-]+$/.test(channelData.encrypted_token)) throw new Error('invalid token format')
-          } catch {
-            throw new Error('Telegram credentials could not be decrypted. Reconnect Telegram in Settings.')
+          } catch (decErr) {
+            throw new Error(`Telegram token decryption failed: ${decErr.message}. Key length: ${encryptionKey.length}. Key starts with: ${encryptionKey.slice(0, 4)}`);
           }
 
           let chatId: string;
@@ -226,8 +231,8 @@ serve(async (req) => {
           try {
             const { decrypt } = await import('./encryption.ts');
             chatId = decrypt(channelData.chat_id_encrypted, encryptionKey);
-          } catch {
-            throw new Error('Telegram chat ID could not be decrypted. Reconnect Telegram in Settings.');
+          } catch (decErr) {
+            throw new Error(`Telegram chat_id decryption failed: ${decErr.message}. Key length: ${encryptionKey.length}. Key starts with: ${encryptionKey.slice(0, 4)}`);
           }
           if (!/^-?\d+$/.test(chatId.trim())) throw new Error('Telegram chat ID is invalid. Reconnect Telegram in Settings.')
 
@@ -237,6 +242,7 @@ serve(async (req) => {
             body: JSON.stringify({
               chat_id: chatId,
               text: msg.tgText,
+              parse_mode: 'HTML',
             })
           });
 
