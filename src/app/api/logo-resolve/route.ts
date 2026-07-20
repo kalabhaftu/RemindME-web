@@ -49,10 +49,11 @@ async function resolveDomain(query: string): Promise<string | null> {
   return null;
 }
 
-async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; contentType: string } | null> {
+async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; contentType: string; sourceUrl: string } | null> {
   const fetchUrls = [
-    `https://icon.horse/icon/${domain}`,
     `https://cdn.brandfetch.io/${domain}/w/400/h/400`,
+    `https://logo.clearbit.com/${domain}`,
+    `https://icon.horse/icon/${domain}`,
     `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
   ];
 
@@ -64,6 +65,7 @@ async function fetchLogoBuffer(domain: string): Promise<{ buffer: Buffer; conten
         return {
           buffer: Buffer.from(arrayBuffer),
           contentType: imgRes.headers.get('content-type') ?? 'image/png',
+          sourceUrl: url,
         };
       }
     } catch (e) {
@@ -100,10 +102,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      return NextResponse.json({ error: 'Cloudinary is not configured' }, { status: 500 });
-    }
-
     const domain = await resolveDomain(query);
     if (!domain) {
       return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
@@ -131,11 +129,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Could not fetch logo' }, { status: 404 });
     }
 
+    const cloudinaryConfigured = Boolean(
+      process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET
+    );
+
+    if (!cloudinaryConfigured) {
+      return NextResponse.json({
+        domain,
+        logoUrl: logoData.sourceUrl,
+        logoCandidates: [logoData.sourceUrl],
+        colorAccent: '#3B82F6',
+        cached: false,
+      });
+    }
+
     const uploaded = await uploadToCloudinary(logoData.buffer, publicId);
 
     return NextResponse.json({
       domain,
       logoUrl: uploaded.secure_url,
+      logoCandidates: [uploaded.secure_url, logoData.sourceUrl],
       colorAccent: '#3B82F6',
       cached: false,
     });

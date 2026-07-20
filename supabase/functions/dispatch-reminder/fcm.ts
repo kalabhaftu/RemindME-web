@@ -140,6 +140,17 @@ export async function sendFcmNotification(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`FCM send failed: ${errorText}`);
+    let unregistered = false;
+    try {
+      const parsed = JSON.parse(errorText);
+      unregistered = parsed?.error?.details?.some(
+        (detail: { errorCode?: string }) => detail.errorCode === 'UNREGISTERED'
+      ) ?? false;
+    } catch {
+      unregistered = /notregistered|unregistered/i.test(errorText);
+    }
+    const error = new Error(`FCM send failed: ${errorText}`) as Error & { unregistered?: boolean };
+    error.unregistered = unregistered;
+    throw error;
   }
 }

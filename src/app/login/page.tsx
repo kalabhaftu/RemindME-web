@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -66,6 +67,23 @@ export default function LoginPage() {
     })
   }
 
+  const handleMagicLink = async () => {
+    if (!email.trim()) {
+      setErrorMsg('Enter your email first.')
+      return
+    }
+    setLoading(true)
+    setErrorMsg('')
+    setMagicLinkSent(false)
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    })
+    setLoading(false)
+    if (error) setErrorMsg(error.message)
+    else setMagicLinkSent(true)
+  }
+
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-4 overflow-hidden bg-[#050609] text-white">
       {/* Animated blue/black background blobs (No purple) */}
@@ -106,6 +124,12 @@ export default function LoginPage() {
           {errorMsg && (
             <div className="mb-6 p-4 rounded-2xl bg-[rgba(239,68,68,0.15)] border border-red-500/30 text-red-300 text-xs font-semibold leading-relaxed">
               {errorMsg}
+            </div>
+          )}
+
+          {magicLinkSent && (
+            <div className="mb-6 p-4 rounded-2xl bg-[rgba(59,130,246,0.12)] border border-[rgba(59,130,246,0.3)] text-[#9cc4ff] text-xs font-semibold leading-relaxed">
+              Check your email and open the link to sign in.
             </div>
           )}
 
@@ -203,6 +227,15 @@ export default function LoginPage() {
               />
             </svg>
             Continue with Google
+          </button>
+
+          <button
+            type="button"
+            onClick={handleMagicLink}
+            disabled={loading}
+            className="w-full mt-3 py-3 px-4 rounded-full bg-[rgba(59,130,246,0.14)] border border-[rgba(59,130,246,0.3)] text-[#9cc4ff] font-semibold text-xs uppercase tracking-wider hover:bg-[rgba(59,130,246,0.22)] transition-all disabled:opacity-50 active:scale-[0.98] cursor-pointer"
+          >
+            Send magic link
           </button>
         </div>
       </div>

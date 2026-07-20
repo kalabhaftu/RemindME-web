@@ -183,44 +183,57 @@ serve(async (req) => {
         } else if (item.channel === 'push') {
           const { data: channelData, error: dbError } = await supabase
             .from('notification_channels')
-            .select('encrypted_token')
+            .select('id, encrypted_token')
             .eq('user_id', item.user_id)
             .eq('channel', 'push');
 
           if (dbError || !channelData || channelData.length === 0) {
-            throw new Error('FCM push tokens not found for user');
-          }
-
-          const serviceAccount = Deno.env.get('FIREBASE_SERVICE_ACCOUNT') || Deno.env.get('FIREBASE_SERVICE_ACCOUNT_KEY');
-          if (!serviceAccount) {
-            throw new Error('FIREBASE_SERVICE_ACCOUNT is not configured on the backend');
-          }
-
-          const { sendFcmNotification } = await import('./fcm.ts');
-          const fcmResults = await Promise.allSettled(
-            channelData.map((cd) =>
-              sendFcmNotification(
-                serviceAccount,
-                cd.encrypted_token,
-                msg.title,
-                msg.body,
-                {
-                  category: item.category,
-                  reminder_item_id: item.reminder_item_id,
-                }
-              )
-            )
-          );
-
-          const failed = fcmResults.filter((r) => r.status === 'rejected');
-          if (failed.length > 0) {
-            failed.forEach((r: any) => console.error('FCM delivery failure:', r.reason));
-            if (failed.length === fcmResults.length) {
-              throw new Error(`All push deliveries failed (${failed.length} devices)`);
+            status = 'skipped';
+            errorMessage = 'No registered push device for user';
+          } else {
+            const serviceAccount = Deno.env.get('FIREBASE_SERVICE_ACCOUNT') || Deno.env.get('FIREBASE_SERVICE_ACCOUNT_KEY');
+            if (!serviceAccount) {
+              throw new Error('FIREBASE_SERVICE_ACCOUNT is not configured on the backend');
             }
-          }
 
-          status = 'sent';
+            const { sendFcmNotification } = await import('./fcm.ts');
+            const fcmResults = await Promise.allSettled(
+              channelData.map((cd) =>
+                sendFcmNotification(
+                  serviceAccount,
+                  cd.encrypted_token,
+                  msg.title,
+                  msg.body,
+                  {
+                    category: String(item.category ?? 'reminder'),
+                    reminder_item_id: item.reminder_item_id,
+                  }
+                )
+              )
+            );
+
+            const failed = fcmResults.filter((r) => r.status === 'rejected');
+            if (failed.length > 0) {
+              failed.forEach((r: any) => console.error('FCM delivery failure:', r.reason));
+              await Promise.all(
+                fcmResults.map((result, index) => {
+                  if (result.status !== 'rejected' || !result.reason?.unregistered) return Promise.resolve();
+                  return supabase.from('notification_channels').delete().eq('id', channelData[index].id);
+                })
+              );
+              if (failed.length === fcmResults.length) {
+                const allExpired = fcmResults.every((result) => result.status === 'rejected' && result.reason?.unregistered);
+                if (allExpired) {
+                  status = 'skipped';
+                  errorMessage = 'Expired push devices removed';
+                } else {
+                  throw new Error(`All push deliveries failed (${failed.length} devices)`);
+                }
+              }
+            }
+
+            if (status !== 'skipped') status = 'sent';
+          }
         } else {
           status = 'skipped'
           errorMessage = 'Channel dispatch not yet implemented'

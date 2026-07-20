@@ -12,6 +12,7 @@ import { TASK_ICONS } from '@/components/tasks/TasksTable'
 import { cn } from '@/lib/cn'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { format, parseISO } from 'date-fns'
+import { localTimeZone } from '@/lib/local-time'
 
 function toDatetimeLocal(iso: string): string {
   const d = parseISO(iso)
@@ -66,6 +67,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
         name: name.trim(),
         icon_key: iconKey,
         notes: notes || undefined,
+        timezone: localTimeZone(),
         task_details: { due_at: new Date(dueAt).toISOString() },
         recurrence_rules: {
           frequency,
@@ -132,6 +134,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
               <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Due date & time *</label>
               <input type="datetime-local" required value={dueAt} onChange={e => setDueAt(e.target.value)}
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" style={{ colorScheme: 'dark' }} />
+              <p className="mt-2 text-[11px] text-[rgba(255,255,255,0.42)]">Uses your device time zone: {localTimeZone()}</p>
             </div>
 
             <div>

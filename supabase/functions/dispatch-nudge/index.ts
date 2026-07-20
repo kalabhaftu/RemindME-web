@@ -58,7 +58,7 @@ serve(async (req) => {
 
         const { data: channelData, error: dbError } = await supabase
           .from('notification_channels')
-          .select('encrypted_token')
+          .select('id, encrypted_token')
           .eq('user_id', item.user_id)
           .eq('channel', 'push')
 
@@ -68,12 +68,19 @@ serve(async (req) => {
 
         const { sendFcmNotification } = await import('../dispatch-reminder/fcm.ts')
         const pushResults = await Promise.allSettled(
-          channelData.map((cd: { encrypted_token: string }) =>
+          channelData.map((cd: { id: string; encrypted_token: string }) =>
             sendFcmNotification(serviceAccount, cd.encrypted_token, `Follow-up: ${item.name}`, messageBody)
           )
         )
 
         const failed = pushResults.filter((r) => r.status === 'rejected')
+        await Promise.all(
+          pushResults.map((result, index) => {
+            if (result.status !== 'rejected' || !result.reason?.unregistered) return Promise.resolve()
+            return supabase.from('notification_channels').delete().eq('id', channelData[index].id)
+          })
+        )
+
         if (failed.length === pushResults.length) {
           throw new Error(`All push nudge deliveries failed (${failed.length} devices)`)
         }

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { EmptyState } from '@/components/EmptyState'
 import * as Phosphor from '@phosphor-icons/react'
+import { formatLocalDateTime } from '@/lib/local-time'
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   trash: Phosphor.Trash,
@@ -65,7 +66,7 @@ export function TasksTable({
         {rows.map(item => {
           const t = item.task_details
           const Icon = (item.icon_key && ICON_MAP[item.icon_key]) ? ICON_MAP[item.icon_key] : CheckSquare
-          const dueStr = t?.due_at ? format(parseISO(t.due_at), 'MMM d, yyyy h:mm a') : 'No due date'
+          const dueStr = t?.due_at ? formatLocalDateTime(t.due_at) : 'No due date'
           const freq = item.recurrence_rules?.frequency
           return (
             <div 

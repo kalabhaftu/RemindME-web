@@ -106,10 +106,14 @@ export function NotificationPrefsForm({
             <div className={!matrix[channel]?.enabled ? 'opacity-30 pointer-events-none' : ''}>
               <CustomSelect
                 value={matrix[channel]?.lead_time ?? 'at_time'}
-                onChange={val => handleChange({
-                  ...matrix,
-                  [channel]: { ...matrix[channel], lead_time: val },
-                })}
+              onChange={val => handleChange({
+                ...matrix,
+                [channel]: {
+                  ...matrix[channel],
+                  lead_time: val,
+                  offset_days: val === 'at_time' || val === 'custom' ? 0 : matrix[channel].offset_days ?? 0,
+                },
+              })}
                 options={LEAD_TIME_OPTIONS as unknown as { value: string; label: string }[]}
               />
             </div>
@@ -130,16 +134,18 @@ export function NotificationPrefsForm({
             )}
           </div>
           
-          <div className={!matrix[channel]?.enabled ? 'opacity-30 pointer-events-none' : ''}>
-            <CustomSelect
-              value={String(matrix[channel]?.offset_days ?? 0)}
-              onChange={val => handleChange({
-                ...matrix,
-                [channel]: { ...matrix[channel], offset_days: parseInt(val, 10) },
-              })}
-              options={OFFSET_DAY_OPTIONS}
-            />
-          </div>
+          {matrix[channel]?.lead_time !== 'at_time' && matrix[channel]?.lead_time !== 'custom' ? (
+            <div className={!matrix[channel]?.enabled ? 'opacity-30 pointer-events-none' : ''}>
+              <CustomSelect
+                value={String(matrix[channel]?.offset_days ?? 0)}
+                onChange={val => handleChange({
+                  ...matrix,
+                  [channel]: { ...matrix[channel], offset_days: parseInt(val, 10) },
+                })}
+                options={OFFSET_DAY_OPTIONS}
+              />
+            </div>
+          ) : <div aria-hidden="true" />}
         </div>
       ))}
     </div>
@@ -159,7 +165,9 @@ export function prefsMatrixToPayload(matrix: PrefsMatrix): {
       channel: ch as 'email' | 'push' | 'telegram' | 'in_app',
       enabled: true,
       lead_time: matrix[ch].lead_time as 'at_time' | 'morning_of' | 'noon_of' | 'evening_of' | 'custom',
-      offset_days: matrix[ch].offset_days ?? 0,
+      offset_days: matrix[ch].lead_time === 'at_time' || matrix[ch].lead_time === 'custom'
+        ? 0
+        : matrix[ch].offset_days ?? 0,
       ...(matrix[ch].lead_time === 'custom' && matrix[ch].custom_time
         ? { custom_time: matrix[ch].custom_time }
         : {}),

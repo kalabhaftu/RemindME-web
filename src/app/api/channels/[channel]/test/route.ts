@@ -44,7 +44,7 @@ export async function POST(
       // Fetch user's telegram token
       const { data: channelData, error: dbError } = await supabase
         .from('notification_channels')
-        .select('encrypted_token')
+        .select('id, encrypted_token, chat_id_encrypted')
         .eq('user_id', user.id)
         .eq('channel', 'telegram')
         .single();
@@ -68,24 +68,33 @@ export async function POST(
         return NextResponse.json({ error: 'Invalid Telegram bot token' }, { status: 400 });
       }
       
-      // Try to get chat_id from getUpdates
-      const updatesRes = await fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=100`);
-      if (!updatesRes.ok) {
-        return NextResponse.json({ error: 'Failed to fetch updates from Telegram. Please make sure you have sent a message to the bot.' }, { status: 500 });
+      let chatId: string | number | null = null;
+      if (channelData.chat_id_encrypted) {
+        try {
+          const { decrypt } = await import('@/lib/encryption');
+          chatId = decrypt(channelData.chat_id_encrypted);
+        } catch {
+          chatId = null;
+        }
       }
-      
-      const updatesData = await updatesRes.json();
-      const messages = updatesData.result || [];
-      if (messages.length === 0) {
-        return NextResponse.json({ error: 'No chat history found. Please send a message (e.g., /start) to your bot first, then try testing again.' }, { status: 400 });
+
+      if (!chatId) {
+        const updatesRes = await fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=100`);
+        if (!updatesRes.ok) {
+          return NextResponse.json({ error: 'Failed to fetch updates from Telegram. Please make sure you have sent a message to the bot.' }, { status: 500 });
+        }
+        const updatesData = await updatesRes.json();
+        const messages = updatesData.result || [];
+        const lastMessage = [...messages].reverse().find(m => m.message?.chat?.id);
+        if (!lastMessage) {
+          return NextResponse.json({ error: 'No chat history found. Send /start to your bot once, then test again.' }, { status: 400 });
+        }
+        chatId = lastMessage.message.chat.id;
+        await supabase
+          .from('notification_channels')
+          .update({ chat_id_encrypted: (await import('@/lib/encryption')).encrypt(String(chatId)) })
+          .eq('id', channelData.id);
       }
-      
-      // Find the most recent valid chat_id
-      const lastMessage = [...messages].reverse().find(m => m.message?.chat?.id);
-      if (!lastMessage) {
-        return NextResponse.json({ error: 'Could not extract your chat ID from recent messages. Please send a new text message to the bot and try again.' }, { status: 400 });
-      }
-      const chatId = lastMessage.message.chat.id;
       
       // Send the test message
       const sendRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -108,7 +117,7 @@ export async function POST(
       // Fetch ALL user push tokens (send to every registered device)
       const { data: channelData, error: dbError } = await supabase
         .from('notification_channels')
-        .select('encrypted_token')
+        .select('id, encrypted_token')
         .eq('user_id', user.id)
         .eq('channel', 'push');
 
@@ -122,7 +131,7 @@ export async function POST(
       }
 
       try {
-        const { sendFcmNotification } = await import('@/lib/fcm');
+        const { FcmDeliveryError, sendFcmNotification } = await import('@/lib/fcm');
         const results = await Promise.allSettled(
           channelData.map((cd) =>
             sendFcmNotification(
@@ -136,8 +145,19 @@ export async function POST(
         const failed = results.filter((r) => r.status === 'rejected');
         if (failed.length > 0) {
           failed.forEach((r: any) => console.error('FCM delivery failure:', r.reason));
+          await Promise.all(
+            results.map((result, index) => {
+              if (result.status !== 'rejected' || !(result.reason instanceof FcmDeliveryError) || !result.reason.unregistered) {
+                return Promise.resolve();
+              }
+              return supabase.from('notification_channels').delete().eq('id', channelData[index].id);
+            })
+          );
           if (failed.length === results.length) {
-            return NextResponse.json({ error: 'All push deliveries failed', deviceCount: channelData.length }, { status: 500 });
+            const staleCount = results.filter(
+              result => result.status === 'rejected' && result.reason instanceof FcmDeliveryError && result.reason.unregistered
+            ).length;
+            return NextResponse.json({ error: staleCount === results.length ? 'Push token expired. Open the mobile app once to register this device again.' : 'All push deliveries failed', deviceCount: channelData.length }, { status: 410 });
           }
         }
       } catch (err: any) {

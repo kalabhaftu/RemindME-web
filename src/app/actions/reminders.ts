@@ -11,6 +11,7 @@ const baseReminderSchema = z.object({
   icon_key: z.string().optional(),
   color_accent: z.string().optional(),
   notes: z.string().max(10000).optional(),
+  timezone: z.string().min(1).max(100).optional(),
 })
 
 // Extended schemas
@@ -73,6 +74,7 @@ export type ReminderPayload = z.infer<typeof baseReminderSchema> & {
   holiday_details?: z.infer<typeof holidayDetailsSchema>
   recurrence_rules?: z.infer<typeof recurrenceRuleSchema>
   notification_preferences?: z.infer<typeof notificationPreferenceSchema>[]
+  timezone?: string
 }
 
 export type EscalationState = {
@@ -178,6 +180,15 @@ export async function createReminder(payload: ReminderPayload) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  if (parsedPayload.timezone) {
+    const { error } = await supabase.from('user_settings').upsert({
+      user_id: user.id,
+      timezone: parsedPayload.timezone,
+      updated_at: new Date().toISOString(),
+    })
+    if (error) throw new Error('Timezone error: ' + error.message)
+  }
+
   // 1. Insert Base Item
   const { data: item, error: itemError } = await supabase
     .from('reminder_items')
@@ -247,6 +258,15 @@ export async function updateReminder(id: string, payload: Partial<ReminderPayloa
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
+
+  if (parsedPayload.timezone) {
+    const { error } = await supabase.from('user_settings').upsert({
+      user_id: user.id,
+      timezone: parsedPayload.timezone,
+      updated_at: new Date().toISOString(),
+    })
+    if (error) throw new Error('Timezone error: ' + error.message)
+  }
 
   const { data: existing } = await supabase
     .from('reminder_items')
