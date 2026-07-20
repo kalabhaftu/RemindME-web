@@ -128,6 +128,13 @@ serve(async (req) => {
   try {
     // 1. Fetch due reminders — pass current UTC timestamp as required by the SQL function signature
     const runTime = new Date().toISOString()
+    const { data: advancedStale, error: advanceStaleError } = await supabase.rpc('advance_terminal_reminder_occurrences', { run_time: runTime })
+    if (advanceStaleError) {
+      console.error('Failed to advance terminal reminders before dispatch:', advanceStaleError)
+    } else if (advancedStale) {
+      console.log(`Advanced ${advancedStale} terminal reminder occurrences before dispatch`)
+    }
+
     const { data: dueItems, error: dueError } = await supabase.rpc('reminder_occurrences_due', { run_time: runTime })
 
     if (dueError) {
@@ -142,7 +149,7 @@ serve(async (req) => {
     }
 
     const results = []
-    const occurrenceResults = new Map<string, { failed: boolean }>()
+    const occurrenceResults = new Map<string, { reminderItemId: string; occurrenceDate: string }>()
 
     // 2. Process each due reminder
     for (const item of dueItems) {
@@ -323,9 +330,10 @@ serve(async (req) => {
       })
 
       const occurrenceKey = `${item.reminder_item_id}:${item.occurrence_date}`
-      const current = occurrenceResults.get(occurrenceKey) ?? { failed: false }
-      current.failed ||= status === 'failed'
-      occurrenceResults.set(occurrenceKey, current)
+      occurrenceResults.set(occurrenceKey, {
+        reminderItemId: item.reminder_item_id,
+        occurrenceDate: item.occurrence_date,
+      })
 
       // 3.5 Upsert escalation_state for primary notification
       if (status === 'sent') {
@@ -343,13 +351,21 @@ serve(async (req) => {
       results.push({ item_id: item.reminder_item_id, status, error: errorMessage })
     }
 
-    for (const [key, outcome] of occurrenceResults) {
-      if (outcome.failed) continue
-      const reminderItemId = key.split(':')[0]
-      const { error: advanceError } = await supabase.rpc('advance_reminder_occurrence', {
-        p_reminder_item_id: reminderItemId
+    for (const occurrence of occurrenceResults.values()) {
+      const { data: isTerminal, error: terminalError } = await supabase.rpc('reminder_occurrence_all_channels_terminal', {
+        p_reminder_item_id: occurrence.reminderItemId,
+        p_occurrence_date: occurrence.occurrenceDate,
       })
-      if (advanceError) console.error(`Failed to advance reminder ${reminderItemId}:`, advanceError)
+      if (terminalError) {
+        console.error(`Failed to check terminal state for ${occurrence.reminderItemId}:`, terminalError)
+        continue
+      }
+      if (!isTerminal) continue
+
+      const { error: advanceError } = await supabase.rpc('advance_reminder_occurrence', {
+        p_reminder_item_id: occurrence.reminderItemId
+      })
+      if (advanceError) console.error(`Failed to advance reminder ${occurrence.reminderItemId}:`, advanceError)
     }
 
     return new Response(JSON.stringify({ success: true, results }), {
