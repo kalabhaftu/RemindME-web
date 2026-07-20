@@ -49,6 +49,7 @@ export async function POST(request: Request) {
         .update({
           encrypted_token: encryptedToken,
           label: botUsername ? `@${botUsername}` : null,
+          chat_id_encrypted: null,
         })
         .eq('id', existing.id);
       error = updateErr;
@@ -152,7 +153,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ hasToken: true, maskedToken: masked, botUsername, hasChatId: !!data.chat_id_encrypted, maskedChatId });
     } catch (e) {
       console.error('Decryption error:', e);
-      return NextResponse.json({ hasToken: true, maskedToken: '********', botUsername: null });
+      return NextResponse.json({ hasToken: false, needsReconnect: true, botUsername: null });
     }
   } catch (error: any) {
     console.error('Get telegram token error:', error);
