@@ -43,5 +43,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
     lines.push('END:VEVENT')
   }
   lines.push('END:VCALENDAR')
-  return new NextResponse(lines.join('\r\n') + '\r\n', { headers: { 'Content-Type': 'text/calendar; charset=utf-8', 'Cache-Control': 'private, max-age=300' } })
+  return new NextResponse(lines.join('\r\n') + '\r\n', {
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Content-Disposition': 'inline; filename="remindme-calendar.ics"',
+      'Cache-Control': 'private, max-age=300',
+    },
+  })
 }

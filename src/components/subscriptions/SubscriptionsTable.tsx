@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { format, parseISO, differenceInDays, startOfDay } from 'date-fns'
-import { CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { EmptyState } from '@/components/EmptyState'
+import { ResilientBrandImage } from '@/components/ui/ResilientBrandImage'
 
 function daysUntilRenewal(dateStr: string): number {
   const today = startOfDay(new Date())
@@ -75,13 +75,7 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
                 <tr key={item.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.04)] transition-colors">
                   <td className="px-4 py-3">
                     <Link href={`/subscriptions/${item.id}`} className="flex items-center gap-3 group-hover:text-[#5B9CFF] transition-colors">
-                      {s?.logo_url ? (
-                        <img src={s.logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-[rgba(255,255,255,0.06)]" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
-                          <CreditCard size={14} className="text-[#3B82F6]" />
-                        </div>
-                      )}
+                      <ResilientBrandImage name={item.name} src={s?.logo_url} size="sm" />
                       <span className="text-[14px] font-medium text-[rgba(255,255,255,0.92)]">{item.name}</span>
                     </Link>
                   </td>

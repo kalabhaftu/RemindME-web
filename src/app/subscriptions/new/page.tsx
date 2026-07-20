@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createReminder } from '@/app/actions/reminders'
 import { AppShell } from '@/components/AppShell'
+import { ResilientBrandImage } from '@/components/ui/ResilientBrandImage'
 import { NotificationPrefsForm, useDefaultPrefs, prefsMatrixToPayload } from '@/components/forms/NotificationPrefs'
 
 export default function NewSubscriptionPage() {
@@ -119,15 +120,15 @@ export default function NewSubscriptionPage() {
               {resolvingLogo && <p className="text-xs text-[rgba(255,255,255,0.38)] mt-1">Fetching logo…</p>}
               {logoUrl && !resolvingLogo && (
                 <div className="flex items-center gap-3 mt-3 p-3 bg-[rgba(0,0,0,0.2)] rounded-lg">
-                  <img src={logoUrl} alt="" className="w-10 h-10 rounded-lg object-contain" />
-                  <span className="text-xs text-[rgba(255,255,255,0.6)]">Logo auto-fetched</span>
+                  <ResilientBrandImage name={name} src={logoUrl} />
+                  <span className="text-xs text-[rgba(255,255,255,0.6)]">Logo preview</span>
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Renewal date & time *</label>
-              <input type="datetime-local" required value={renewalDate} onChange={e => setRenewalDate(e.target.value)}
+              <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Renewal date *</label>
+              <input type="date" required value={renewalDate} onChange={e => setRenewalDate(e.target.value)}
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60" style={{ colorScheme: 'dark' }} />
             </div>
 

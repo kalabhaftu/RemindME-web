@@ -40,7 +40,7 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
         setNotes(data.notes ?? '')
         const s = data.subscription_details
         if (s) {
-          setRenewalDate(s.renewal_date ? (s.renewal_date.length === 10 ? `${s.renewal_date}T00:00` : s.renewal_date.slice(0, 16)) : '')
+          setRenewalDate(s.renewal_date ? s.renewal_date.slice(0, 10) : '')
           setBillingAmount(s.billing_amount?.toString() ?? '')
           setBillingCurrency(s.billing_currency ?? 'USD')
           setCycle((s.cycle as 'weekly' | 'monthly' | 'yearly') ?? 'monthly')
@@ -132,7 +132,7 @@ export default function EditSubscriptionPage({ params }: { params: Promise<{ id:
             </div>
             <div>
               <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Renewal date & time *</label>
-              <input type="datetime-local" required value={renewalDate} onChange={e => setRenewalDate(e.target.value)}
+              <input type="date" required value={renewalDate} onChange={e => setRenewalDate(e.target.value)}
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60" style={{ colorScheme: 'dark' }} />
             </div>
             <div className="grid grid-cols-3 gap-3">

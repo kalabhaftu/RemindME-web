@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { User, ChevronUp, ChevronDown, Search } from 'lucide-react'
+import { ChevronUp, ChevronDown, Search } from 'lucide-react'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { getAge, getDaysUntilBirthday, getZodiacSign } from '@/utils/computed'
 import { TagPill } from '@/components/ui/TagPill'
@@ -10,6 +10,7 @@ import { GENDER_LABELS, RELATIONSHIP_LABELS, ZODIAC_META, SortOption } from '@/l
 import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import { EmptyState } from '@/components/EmptyState'
+import { ResilientBrandImage } from '@/components/ui/ResilientBrandImage'
 
 type PersonRow = {
   id: string
@@ -21,6 +22,7 @@ type PersonRow = {
   zodiac: string
   daysToBirthday: number
   createdAt: string
+  avatarUrl: string
 }
 
 function toPersonRows(items: ReminderItemWithDetails[]): PersonRow[] {
@@ -39,6 +41,7 @@ function toPersonRows(items: ReminderItemWithDetails[]): PersonRow[] {
         zodiac: birthdate ? getZodiacSign(birthdate) : 'Unknown',
         daysToBirthday: birthdate ? getDaysUntilBirthday(birthdate) : 9999,
         createdAt: i.created_at,
+        avatarUrl: p?.avatar_url ?? '',
       }
     })
 }
@@ -206,9 +209,7 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                 >
                   <td className="px-4 py-3">
                     <Link href={`/people/${row.id}`} className="flex items-center gap-2.5 group-hover:text-[#5B9CFF] transition-colors">
-                      <div className="w-7 h-7 rounded-full bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
-                        <User size={14} className="text-[#3B82F6]" />
-                      </div>
+                      <ResilientBrandImage name={row.name} src={row.avatarUrl} size="sm" fallback="initials" />
                       <span className="text-[14px] font-medium text-[rgba(255,255,255,0.92)]">{row.name}</span>
                     </Link>
                   </td>

@@ -141,27 +141,14 @@ serve(async (req) => {
           }
 
           let chatId: string;
-          if (channelData.chat_id_encrypted) {
-            try {
-              const { decrypt } = await import('./encryption.ts');
-              chatId = decrypt(channelData.chat_id_encrypted, encryptionKey);
-            } catch {
-              const updatesRes = await fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=100`);
-              if (!updatesRes.ok) throw new Error('Failed to fetch updates from Telegram');
-              const updatesData = await updatesRes.json();
-              const messages = updatesData.result || [];
-              const lastMessage = [...messages].reverse().find((m: { message?: { chat?: { id?: number } } }) => m.message?.chat?.id);
-              if (!lastMessage?.message?.chat?.id) throw new Error('No chat history found. Send a message to your bot first.');
-              chatId = String(lastMessage.message.chat.id);
-            }
-          } else {
-            const updatesRes = await fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=100`);
-            if (!updatesRes.ok) throw new Error('Failed to fetch updates from Telegram');
-            const updatesData = await updatesRes.json();
-            const messages = updatesData.result || [];
-            const lastMessage = [...messages].reverse().find((m: { message?: { chat?: { id?: number } } }) => m.message?.chat?.id);
-            if (!lastMessage?.message?.chat?.id) throw new Error('No chat history found. Send a message to your bot first.');
-            chatId = String(lastMessage.message.chat.id);
+          if (!channelData.chat_id_encrypted) {
+            throw new Error('Telegram chat ID is not connected. Open Settings, send /start to your bot, then Detect or save the chat ID.');
+          }
+          try {
+            const { decrypt } = await import('./encryption.ts');
+            chatId = decrypt(channelData.chat_id_encrypted, encryptionKey);
+          } catch {
+            throw new Error('Telegram chat ID could not be decrypted. Reconnect Telegram in Settings.');
           }
 
           const sendRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download, CalendarDays, Copy, ExternalLink, Upload } from 'lucide-react'
+import { ArrowLeft, Save, Send, Trash2, ShieldAlert, Mail, Bell, LogOut, Download, CalendarDays, Copy, ExternalLink, Upload, Share2, MessageSquare, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
@@ -352,6 +352,16 @@ export default function SettingsPage() {
     showToast('Webcal link copied', 'success')
   }
 
+  const shareApp = async () => {
+    const shareData = { title: 'RemindME', text: 'Reminders that stay close.', url: window.location.origin }
+    if (navigator.share) {
+      await navigator.share(shareData).catch(() => {})
+    } else {
+      await navigator.clipboard.writeText(window.location.origin)
+      showToast('App link copied', 'success')
+    }
+  }
+
   const logoutAllDevices = async () => {
     setConfirmModal({
       isOpen: true,
@@ -678,6 +688,18 @@ export default function SettingsPage() {
               <summary className="cursor-pointer text-sm font-semibold text-white">Outlook Calendar</summary>
               <p className="mt-3 text-xs leading-6 text-[var(--text-secondary)]">Open Outlook Calendar → Add calendar → Subscribe from web → paste the link → Import/Subscribe.</p>
             </details>
+          </div>
+        </section>
+
+        <section className="rm-surface rounded-[28px] p-6">
+          <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><ShieldCheck size={20} className="text-[#A78BFA]" /> About & support</h2>
+          <p className="text-xs text-[var(--text-secondary)] mb-5 leading-relaxed">RemindME keeps important dates close without making them noisy.</p>
+          <p className="text-[11px] text-[rgba(255,255,255,0.42)] mb-4">Version {process.env.NEXT_PUBLIC_APP_VERSION || 'web'}</p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={shareApp} className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><Share2 size={14} /> Share RemindME</button>
+            <a href="mailto:?subject=RemindME%20feedback" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><MessageSquare size={14} /> Send feedback</a>
+            <a href="/terms" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2">Terms</a>
+            <a href="/privacy" className="rm-control text-white px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2">Privacy</a>
           </div>
         </section>
 
