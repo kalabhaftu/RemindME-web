@@ -12,10 +12,16 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
-function formatFriendlyDate(dateStr: string): string {
-  if (!dateStr) return ''
-  const d = new Date(dateStr + 'T12:00:00Z')
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })
+function formatFriendlyDateTime(eventAt: string, timezone: string): string {
+  if (!eventAt) return ''
+  const parts = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    timeZone: timezone || 'UTC', hour12: false
+  }).formatToParts(new Date(eventAt))
+  const date = parts.filter(part => ['weekday', 'month', 'day'].includes(part.type)).map(part => part.value).join(' ').replace(' ', ', ')
+  const hour = parts.find(part => part.type === 'hour')?.value ?? '00'
+  const minute = parts.find(part => part.type === 'minute')?.value ?? '00'
+  return `${date} at ${hour === '24' ? '00' : hour}:${minute}`
 }
 
 function escapeHtml(value: string): string {
@@ -29,25 +35,32 @@ function escapeHtml(value: string): string {
 }
 
 function buildNotification(item: any): { title: string; body: string; html: string; tgText: string } {
-  const date = formatFriendlyDate(item.occurrence_date)
-  const time = item.custom_time ? item.custom_time.slice(0, 5) : null
-  const dateTime = date + (time ? ` at ${time}` : '')
-  const notes = item.notes ? `\n\n${item.notes}` : ''
+  const dateTime = formatFriendlyDateTime(item.event_at, item.timezone)
+  const category = String(item.category ?? '').toLowerCase()
+  const labels: Record<string, { icon: string; noun: string; verb: string }> = {
+    person: { icon: '🎂', noun: 'Birthday', verb: 'is coming up' },
+    subscription: { icon: '💳', noun: 'Subscription', verb: 'renews' },
+    task: { icon: '✓', noun: 'Task', verb: 'is due' },
+    custom_holiday: { icon: '🎉', noun: 'Holiday', verb: 'is coming up' },
+  }
+  const template = labels[category] ?? { icon: '📅', noun: 'Reminder', verb: 'is due' }
+  const name = String(item.name ?? 'Reminder')
+  const notes = item.notes ? `\n\nNotes:\n${item.notes}` : ''
   const safeName = escapeHtml(String(item.name ?? 'Reminder'))
   const safeNotes = item.notes ? escapeHtml(String(item.notes)) : ''
 
-  const title = `📅 ${String(item.name ?? 'Reminder')}`
-  const body = `Due ${dateTime}${notes}`
+  const title = `${template.icon} ${template.noun}: ${name}`
+  const body = `${name} ${template.verb} ${dateTime ? `on ${dateTime}` : ''}${notes}`
 
   const html = `<div style="font-family: -apple-system, sans-serif; padding: 20px;">
-    <h2 style="color: #333; margin: 0 0 8px;">📅 ${safeName}</h2>
+    <h2 style="color: #333; margin: 0 0 8px;">${template.icon} ${template.noun}: ${safeName}</h2>
     <p style="color: #666; margin: 0 0 4px;"><strong>Due:</strong> ${dateTime}</p>
     ${item.notes ? `<p style="color: #555; margin: 8px 0 0;"><strong>Notes:</strong><br>${safeNotes.replace(/\n/g, '<br>')}</p>` : ''}
     <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
     <p style="color: #999; font-size: 12px;">Sent by RemindME</p>
   </div>`
 
-  const tgText = `📅 *${item.name}*\n_Due: ${dateTime}_${item.notes ? `\n\n${item.notes}` : ''}`
+  const tgText = `${template.icon} ${template.noun}: ${name}\nDue: ${dateTime}${notes}`
 
   return { title, body, html, tgText }
 }
@@ -88,7 +101,11 @@ serve(async (req) => {
             user_id: item.user_id,
             reminder_item_id: item.reminder_item_id,
             title: msg.title,
-            body: msg.body
+            body: msg.body,
+            data: {
+              reminder_item_id: item.reminder_item_id,
+              category: item.category
+            }
           })
           if (inAppError) throw new Error(`In-app insertion failed: ${inAppError.message}`)
           status = 'sent'
@@ -132,12 +149,12 @@ serve(async (req) => {
           }
 
           const encryptionKey = Deno.env.get('ENCRYPTION_KEY') ?? '';
-          let token = channelData.encrypted_token;
           try {
             const { decrypt } = await import('./encryption.ts');
-            token = decrypt(token, encryptionKey);
-          } catch (e) {
-            console.warn('Fallback to legacy raw token decryption failed:', e.message);
+            channelData.encrypted_token = decrypt(channelData.encrypted_token, encryptionKey);
+            if (!/^\d+:[A-Za-z0-9_-]+$/.test(channelData.encrypted_token)) throw new Error('invalid token format')
+          } catch {
+            throw new Error('Telegram credentials could not be decrypted. Reconnect Telegram in Settings.')
           }
 
           let chatId: string;
@@ -150,8 +167,9 @@ serve(async (req) => {
           } catch {
             throw new Error('Telegram chat ID could not be decrypted. Reconnect Telegram in Settings.');
           }
+          if (!/^-?\d+$/.test(chatId.trim())) throw new Error('Telegram chat ID is invalid. Reconnect Telegram in Settings.')
 
-          const sendRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          const sendRes = await fetch(`https://api.telegram.org/bot${channelData.encrypted_token}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -193,6 +211,13 @@ serve(async (req) => {
                   {
                     category: String(item.category ?? 'reminder'),
                     reminder_item_id: item.reminder_item_id,
+                    path: item.category === 'person'
+                      ? `/people/${item.reminder_item_id}`
+                      : item.category === 'task'
+                        ? `/tasks/${item.reminder_item_id}`
+                        : item.category === 'subscription'
+                          ? `/subscriptions/${item.reminder_item_id}`
+                          : '/notifications',
                   }
                 )
               )

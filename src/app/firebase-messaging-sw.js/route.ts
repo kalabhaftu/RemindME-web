@@ -23,19 +23,19 @@ firebase.initializeApp({
 var messaging = firebase.messaging()
 
 messaging.onBackgroundMessage(function (payload) {
-  var notification = payload.notification || payload.data || {}
+  var notification = Object.assign({}, payload.data || {}, payload.notification || {})
   var reminderId = notification.reminder_item_id
   var category = notification.category
   var path = '/notifications'
-  if (reminderId && category === 'person') path = '/people/' + reminderId + '/edit'
-  if (reminderId && category === 'subscription') path = '/subscriptions/' + reminderId + '/edit'
-  if (reminderId && category === 'task') path = '/tasks/' + reminderId + '/edit'
-  if (reminderId && category === 'custom_holiday') path = '/holidays/' + reminderId + '/edit'
+  if (reminderId && category === 'person') path = '/people/' + reminderId
+  if (reminderId && category === 'subscription') path = '/subscriptions/' + reminderId
+  if (reminderId && category === 'task') path = '/tasks/' + reminderId
+  if (reminderId && category === 'custom_holiday') path = '/holidays'
   self.registration.showNotification(notification.title || 'RemindME', {
     body: notification.body || '',
     icon: '/icon.png',
     badge: '/favicon.ico',
-    data: { path: path },
+    data: { path: notification.path || path, reminder_item_id: reminderId, category: category },
   })
 })
 

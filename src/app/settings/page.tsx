@@ -9,6 +9,8 @@ import { Modal } from '@/components/ui/Modal'
 import { AppShell } from '@/components/AppShell'
 
 type BulkContact = { name: string; birthdate?: string }
+const TELEGRAM_STATUS_CACHE = 'remindme.telegram.status.v1'
+const TELEGRAM_STATUS_TTL = 5 * 60 * 1000
 
 function parseVCardDate(value: string): string | undefined {
   const normalized = value.trim().replace(/^[^:]*:/, '').replace(/T.*$/, '')
@@ -136,22 +138,41 @@ export default function SettingsPage() {
         if (data) setLogs(data)
       })
 
-    // Load telegram token status
-    setLoadingTelegram(true)
-    fetch('/api/settings/telegram')
-      .then(res => res.json())
-      .then(data => {
+    const applyTelegramStatus = (data: any) => {
         if (data.hasToken) {
           setHasTelegramToken(true)
           setMaskedTelegramToken(data.maskedToken)
           setBotUsername(data.botUsername ?? null)
           setHasChatId(data.hasChatId ?? false)
           setMaskedChatId(data.maskedChatId ?? '')
+        } else {
+          setHasTelegramToken(false)
+          setHasChatId(false)
         }
-      })
-      .finally(() => {
-        setLoadingTelegram(false)
-      })
+    }
+    const cachedTelegram = sessionStorage.getItem(TELEGRAM_STATUS_CACHE)
+    let shouldFetchTelegram = true
+    if (cachedTelegram) {
+      try {
+        const cached = JSON.parse(cachedTelegram)
+        applyTelegramStatus(cached.data)
+        shouldFetchTelegram = Date.now() - cached.at >= TELEGRAM_STATUS_TTL
+      } catch {
+        sessionStorage.removeItem(TELEGRAM_STATUS_CACHE)
+      }
+    }
+    if (shouldFetchTelegram) {
+      setLoadingTelegram(cachedTelegram === null)
+      fetch('/api/settings/telegram')
+        .then(res => res.json())
+        .then(data => {
+          applyTelegramStatus(data)
+          sessionStorage.setItem(TELEGRAM_STATUS_CACHE, JSON.stringify({ at: Date.now(), data }))
+        })
+        .finally(() => setLoadingTelegram(false))
+    } else {
+      setLoadingTelegram(false)
+    }
 
     // Load defaults from local storage (fallback), then from Supabase
     const storedChannels = localStorage.getItem('defaultChannels');
@@ -203,6 +224,7 @@ export default function SettingsPage() {
         // Refresh token status
         const refreshRes = await fetch('/api/settings/telegram');
         const refreshData = await refreshRes.json();
+        sessionStorage.setItem(TELEGRAM_STATUS_CACHE, JSON.stringify({ at: Date.now(), data: refreshData }))
         if (refreshData.hasToken) {
           setHasTelegramToken(true);
           setMaskedTelegramToken(refreshData.maskedToken);
@@ -278,6 +300,7 @@ export default function SettingsPage() {
       setHasChatId(true)
       setMaskedChatId(`***${chatIdInput.trim().slice(-4)}`)
       setChatIdInput('')
+      sessionStorage.removeItem(TELEGRAM_STATUS_CACHE)
       showToast('Chat ID saved!', 'success')
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : 'Failed to save', 'error')
@@ -304,6 +327,7 @@ export default function SettingsPage() {
           setHasChatId(false);
           setMaskedChatId('');
           setTelegramToken('');
+          sessionStorage.removeItem(TELEGRAM_STATUS_CACHE)
           showToast('Telegram token deleted', 'success');
         } catch (err: any) {
           showToast(err.message, 'error');
