@@ -92,10 +92,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative rounded-[32px] overflow-hidden">
         {/* Backing Refractor */}
         <div 
-          className="absolute inset-0 bg-[rgba(10,12,20,0.55)] border border-[rgba(255,255,255,0.06)] rounded-[32px] backdrop-blur-[24px] z-0 shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+          className="rm-surface-elevated absolute inset-0 rounded-[32px] backdrop-blur-[24px] z-0"
           style={{
-            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3)',
-            filter: `url(#liquid-glass-refraction)`
+            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3)'
           }}
         />
         {/* Interactive Sharp Content on Top */}

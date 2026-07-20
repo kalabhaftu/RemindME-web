@@ -18,19 +18,31 @@ function formatFriendlyDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  }[char] ?? char))
+}
+
 function buildNotification(item: any): { title: string; body: string; html: string; tgText: string } {
   const date = formatFriendlyDate(item.occurrence_date)
   const time = item.custom_time ? item.custom_time.slice(0, 5) : null
   const dateTime = date + (time ? ` at ${time}` : '')
   const notes = item.notes ? `\n\n${item.notes}` : ''
+  const safeName = escapeHtml(String(item.name ?? 'Reminder'))
+  const safeNotes = item.notes ? escapeHtml(String(item.notes)) : ''
 
-  const title = `📅 ${item.name}`
+  const title = `📅 ${String(item.name ?? 'Reminder')}`
   const body = `Due ${dateTime}${notes}`
 
   const html = `<div style="font-family: -apple-system, sans-serif; padding: 20px;">
-    <h2 style="color: #333; margin: 0 0 8px;">📅 ${item.name}</h2>
+    <h2 style="color: #333; margin: 0 0 8px;">📅 ${safeName}</h2>
     <p style="color: #666; margin: 0 0 4px;"><strong>Due:</strong> ${dateTime}</p>
-    ${item.notes ? `<p style="color: #555; margin: 8px 0 0;"><strong>Notes:</strong><br>${item.notes.replace(/\n/g, '<br>')}</p>` : ''}
+    ${item.notes ? `<p style="color: #555; margin: 8px 0 0;"><strong>Notes:</strong><br>${safeNotes.replace(/\n/g, '<br>')}</p>` : ''}
     <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
     <p style="color: #999; font-size: 12px;">Sent by RemindME</p>
   </div>`
@@ -62,6 +74,7 @@ serve(async (req) => {
     }
 
     const results = []
+    const occurrenceResults = new Map<string, { failed: boolean }>()
 
     // 2. Process each due reminder
     for (const item of dueItems) {
@@ -230,6 +243,11 @@ serve(async (req) => {
         error_message: errorMessage,
       })
 
+      const occurrenceKey = `${item.reminder_item_id}:${item.occurrence_date}`
+      const current = occurrenceResults.get(occurrenceKey) ?? { failed: false }
+      current.failed ||= status === 'failed'
+      occurrenceResults.set(occurrenceKey, current)
+
       // 3.5 Upsert escalation_state for primary notification
       if (status === 'sent') {
         const { error: escalationError } = await supabase.from('escalation_state').upsert({
@@ -243,15 +261,16 @@ serve(async (req) => {
         }
       }
       
-      // 4. Advance reminder occurrence
-      const { error: advanceError } = await supabase.rpc('advance_reminder_occurrence', {
-        p_reminder_item_id: item.reminder_item_id
-      })
-      if (advanceError) {
-         console.error(`Failed to advance reminder ${item.reminder_item_id}:`, advanceError)
-      }
-
       results.push({ item_id: item.reminder_item_id, status, error: errorMessage })
+    }
+
+    for (const [key, outcome] of occurrenceResults) {
+      if (outcome.failed) continue
+      const reminderItemId = key.split(':')[0]
+      const { error: advanceError } = await supabase.rpc('advance_reminder_occurrence', {
+        p_reminder_item_id: reminderItemId
+      })
+      if (advanceError) console.error(`Failed to advance reminder ${reminderItemId}:`, advanceError)
     }
 
     return new Response(JSON.stringify({ success: true, results }), {

@@ -181,7 +181,6 @@ export default function DashboardClient({ initialReminders }: { initialReminders
           className={`fixed bottom-6 right-6 px-5 py-3 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] flex items-center gap-2.5 text-xs font-semibold pointer-events-auto transition-all duration-300 z-50`}
           style={{
             backdropFilter: 'blur(20px)',
-            filter: 'url(#liquid-glass-refraction)',
             backgroundColor: toast.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
             borderColor: toast.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)',
             color: toast.type === 'error' ? '#fca5a5' : '#a7f3d0',

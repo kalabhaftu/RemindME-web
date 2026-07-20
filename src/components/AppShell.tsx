@@ -27,30 +27,6 @@ export function AppShell({
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
-  // Performance FPS Safety degradation state
-  const [filterScale, setFilterScale] = useState(12)
-  useEffect(() => {
-    let frameCount = 0
-    let lastTime = performance.now()
-    let animationId: number
-
-    const checkFps = () => {
-      const now = performance.now()
-      frameCount++
-      if (now >= lastTime + 1000) {
-        const calculatedFps = Math.round((frameCount * 1000) / (now - lastTime))
-        if (calculatedFps < 55) {
-          setFilterScale(0)
-        }
-        frameCount = 0
-        lastTime = now
-      }
-      animationId = requestAnimationFrame(checkFps)
-    }
-    animationId = requestAnimationFrame(checkFps)
-    return () => cancelAnimationFrame(animationId)
-  }, [])
-
   // Close dropdown menu when clicking outside
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -73,7 +49,7 @@ export function AppShell({
   }
 
   return (
-    <div className="relative min-h-screen text-[rgba(255,255,255,0.92)] font-sans pb-12 overflow-x-clip bg-[#050609]">
+    <div className="relative min-h-screen text-[rgba(255,255,255,0.92)] font-sans pb-12 overflow-x-clip bg-[var(--bg-canvas)]">
       {/* Animated background blobs (Subtle blue/black, no purple) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div 
@@ -100,10 +76,9 @@ export function AppShell({
         <div className="w-full relative pointer-events-auto">
           {/* Backing Refractor */}
           <div 
-            className="absolute inset-0 bg-[rgba(10,12,20,0.55)] border border-[rgba(255,255,255,0.08)] rounded-[24px] backdrop-blur-[20px] z-0 shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+            className="rm-surface-elevated absolute inset-0 rounded-[24px] z-0"
             style={{
-              boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3)',
-              filter: filterScale > 0 ? `url(#liquid-glass-refraction)` : 'none'
+              boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3)'
             }}
           />
           {/* Interactive Sharp Content on Top */}
@@ -181,7 +156,7 @@ export function AppShell({
           {menuOpen && (
             <div 
               ref={menuRef}
-              className="absolute right-4 top-16 w-44 rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(10,12,20,0.85)] backdrop-blur-[16px] p-2 z-50 shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col gap-1 md:hidden"
+              className="rm-surface-elevated absolute right-4 top-16 w-44 rounded-[20px] p-2 z-50 flex flex-col gap-1 md:hidden"
               style={{
                 boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 12px 40px rgba(0,0,0,0.4)'
               }}

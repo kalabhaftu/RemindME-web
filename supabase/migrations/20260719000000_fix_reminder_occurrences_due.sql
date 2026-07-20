@@ -55,6 +55,7 @@ BEGIN
       SELECT 1 FROM public.delivery_log dl
       WHERE dl.reminder_item_id = r.id
         AND dl.channel = p.channel
+        AND dl.status = 'sent'
         AND dl.occurrence_date = (run_time at time zone coalesce(us.timezone, 'UTC'))::date
         AND dl.scheduled_for >= date_trunc('minute', run_time) - interval '1 minute'
     );
@@ -68,8 +69,8 @@ LANGUAGE plpgsql SECURITY DEFINER
 AS $$
 DECLARE
   batch_payload jsonb;
-  base_url text := coalesce(current_setting('app.settings.edge_function_base_url', true), 'qfreczybvddsxtaazfht.supabase.co/functions/v1');
-  anon_key text := coalesce(current_setting('app.settings.anon_key', true), 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcmVjenlidmRkc3h0YWF6Zmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2OTUzODYsImV4cCI6MjA5OTI3MTM4Nn0.8lEXpAQheT98NIvjwtmPl4R4wNJO8mUhIZjs93BjrC0');
+  base_url text := nullif(trim(current_setting('app.settings.edge_function_base_url', true)), '');
+  anon_key text := nullif(trim(current_setting('app.settings.anon_key', true)), '');
   edge_function_url text;
   request_id bigint;
 BEGIN

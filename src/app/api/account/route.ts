@@ -15,6 +15,12 @@ export async function DELETE(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    const { error: signOutError } = await supabaseAdmin.auth.admin.signOut(user.id, 'global');
+    if (signOutError) {
+      console.error('Revoke sessions error:', signOutError);
+      return NextResponse.json({ error: 'Failed to revoke account sessions' }, { status: 500 });
+    }
+
     // Delete user via Auth Admin
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
     

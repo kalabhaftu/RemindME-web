@@ -96,7 +96,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => handleChange(e.target.value)}
             placeholder="Search reminders, notes, people..."
-            className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] pl-10 pr-4 py-3 text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.3)] focus:outline-none focus:border-[#3B82F6]/60 transition-all"
+            className="rm-control w-full rounded-[14px] pl-10 pr-4 py-3 text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.45)] transition-all"
           />
         </div>
 
@@ -117,7 +117,7 @@ export default function SearchPage() {
           <Link
             key={item.id}
             href={getEditHref(item as ReminderItemWithDetails)}
-            className="block p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+            className="rm-surface block p-4 rounded-[14px] hover:bg-[var(--surface-hover)] transition-colors"
           >
             <div className="flex items-center gap-3">
               <span className={categoryColor(item.category)}>{categoryIcon(item.category)}</span>

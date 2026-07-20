@@ -58,7 +58,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
 
   return (
     <div 
-      className="bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] p-6 sticky top-6 mt-6 backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+      className="rm-surface-elevated rounded-[28px] p-6 sticky top-6 mt-6"
       style={{
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
       }}
@@ -78,7 +78,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
       <div className="space-y-4">
         {occurrences.length === 0 ? (
           <div 
-            className="p-8 mt-4 text-center bg-[rgba(15,18,28,0.4)] border border-[rgba(255,255,255,0.05)] rounded-[24px] flex flex-col items-center justify-center"
+            className="rm-surface p-8 mt-4 text-center rounded-[24px] flex flex-col items-center justify-center"
             style={{
               boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
             }}

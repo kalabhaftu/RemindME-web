@@ -50,7 +50,7 @@ export default function SettingsPage() {
     telegram: false,
     in_app: true,
   });
-  const [defaultLeadTime, setDefaultLeadTime] = useState('morning_of');
+  const [defaultLeadTime, setDefaultLeadTime] = useState('at_time');
   const [defaultCustomTime, setDefaultCustomTime] = useState('09:00');
   
   const supabaseRef = useRef(createBrowserClient(

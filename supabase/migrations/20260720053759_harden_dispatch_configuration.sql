@@ -1,0 +1,101 @@
+create or replace function public.reminder_occurrences_due(run_time timestamptz)
+returns table(
+  reminder_item_id uuid,
+  user_id uuid,
+  channel channel_type,
+  occurrence_date date,
+  name text,
+  notes text,
+  custom_time time,
+  timezone text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+  select
+    r.id,
+    r.user_id,
+    p.channel,
+    (run_time at time zone coalesce(us.timezone, 'UTC'))::date,
+    r.name,
+    r.notes,
+    p.custom_time,
+    coalesce(us.timezone, 'UTC')
+  from public.reminder_items r
+  left join public.user_settings us on us.user_id = r.user_id
+  join public.recurrence_rules rr on rr.reminder_item_id = r.id
+  join public.notification_preferences p on p.reminder_item_id = r.id
+  where p.enabled
+    and rr.next_occurrence_at is not null
+    and not exists (
+      select 1
+      from public.snooze_state ss
+      where ss.reminder_item_id = r.id
+        and ss.occurrence_date = (run_time at time zone coalesce(us.timezone, 'UTC'))::date
+        and ss.snoozed_until > run_time
+    )
+    and date_trunc('minute', case
+      when p.lead_time = 'at_time' then rr.next_occurrence_at - (p.offset_days || ' days')::interval
+      when p.lead_time = 'morning_of' then ((rr.next_occurrence_at at time zone coalesce(us.timezone, 'UTC'))::date - p.offset_days + time '09:00') at time zone coalesce(us.timezone, 'UTC')
+      when p.lead_time = 'noon_of' then ((rr.next_occurrence_at at time zone coalesce(us.timezone, 'UTC'))::date - p.offset_days + time '12:00') at time zone coalesce(us.timezone, 'UTC')
+      when p.lead_time = 'evening_of' then ((rr.next_occurrence_at at time zone coalesce(us.timezone, 'UTC'))::date - p.offset_days + time '18:00') at time zone coalesce(us.timezone, 'UTC')
+      when p.lead_time = 'custom' then ((rr.next_occurrence_at at time zone coalesce(us.timezone, 'UTC'))::date - p.offset_days + coalesce(p.custom_time, time '09:00')) at time zone coalesce(us.timezone, 'UTC')
+      else rr.next_occurrence_at - (p.offset_days || ' days')::interval
+    end) <= date_trunc('minute', run_time)
+    and not exists (
+      select 1
+      from public.delivery_log dl
+      where dl.reminder_item_id = r.id
+        and dl.channel = p.channel
+        and dl.status = 'sent'
+        and dl.occurrence_date = (run_time at time zone coalesce(us.timezone, 'UTC'))::date
+        and dl.scheduled_for >= date_trunc('minute', run_time) - interval '1 minute'
+    );
+end;
+$$;
+
+alter function public.advance_reminder_occurrence(uuid) set search_path = public;
+
+alter function public.reminders_needing_nudge() set search_path = public;
+
+create or replace function public.invoke_dispatch_edge_function()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  batch_payload jsonb;
+  base_url text := nullif(trim(current_setting('app.settings.edge_function_base_url', true)), '');
+  anon_key text := nullif(trim(current_setting('app.settings.anon_key', true)), '');
+  request_id bigint;
+begin
+  if base_url is null or base_url !~ '^https://[^/]+/functions/v1$' then
+    raise exception 'app.settings.edge_function_base_url must be set to https://<project-ref>.supabase.co/functions/v1';
+  end if;
+  if anon_key is null then
+    raise exception 'app.settings.anon_key is not configured';
+  end if;
+
+  select jsonb_agg(row_to_json(due))
+  into batch_payload
+  from public.reminder_occurrences_due(now()) due;
+
+  if batch_payload is not null then
+    select net.http_post(
+      url := base_url || '/dispatch-reminder',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || anon_key
+      ),
+      body := jsonb_build_object('reminders', batch_payload)
+    ) into request_id;
+
+    insert into public.cron_dispatch_log (request_id, reminder_count, invoked_at)
+    values (request_id, jsonb_array_length(batch_payload), now());
+  end if;
+end;
+$$;

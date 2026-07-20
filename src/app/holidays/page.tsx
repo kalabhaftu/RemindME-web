@@ -127,8 +127,8 @@ export default function HolidaysPage() {
           },
           recurrence_rules: { frequency: 'yearly', interval_count: 1, ends: 'never' },
           notification_preferences: [
-            { channel: 'in_app', enabled: true, lead_time: 'morning_of' },
-            { channel: 'push', enabled: true, lead_time: 'morning_of' },
+            { channel: 'in_app', enabled: true, lead_time: 'at_time' },
+            { channel: 'push', enabled: true, lead_time: 'at_time' },
           ],
         })
         await loadSubscribed()
@@ -145,13 +145,6 @@ export default function HolidaysPage() {
 
   return (
     <AppShell title="Holidays" action={<AddButton href="/holidays/new" label="Custom" />}>
-      <div className="mb-6">
-        <h2 className="text-[22px] font-semibold tracking-tight">Holiday Reminders</h2>
-        <p className="text-[13px] text-[rgba(255,255,255,0.45)] mt-1">
-          Tap a holiday to add or remove it as a reminder.
-        </p>
-      </div>
-
       {subscribed.length > 0 && (
         <div className="mb-8">
           <h3 className="text-[12px] uppercase tracking-[0.04em] text-[rgba(255,255,255,0.45)] mb-3">
@@ -212,7 +205,7 @@ export default function HolidaysPage() {
                 key={key}
                 onClick={() => toggleHoliday(h)}
                 disabled={toggling === key}
-                className={`w-full p-4 rounded-[12px] border flex items-center justify-between text-left transition-colors ${
+                className={`rm-control w-full p-4 rounded-[14px] border flex items-center justify-between text-left transition-colors ${
                   active
                     ? 'bg-[rgba(59,130,246,0.1)] border-[rgba(59,130,246,0.3)]'
                     : 'bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.06)]'

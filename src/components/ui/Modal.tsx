@@ -22,7 +22,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-md bg-[var(--bg-surface2)] border border-[var(--glass-border)] rounded-xl shadow-xl overflow-hidden"
+        className="rm-surface-elevated w-full max-w-md rounded-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
       >

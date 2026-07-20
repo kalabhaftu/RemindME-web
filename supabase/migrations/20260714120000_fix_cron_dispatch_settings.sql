@@ -22,19 +22,17 @@
 --    the service role key internally (which dispatch-reminder does), but if
 --    you'd rather not store a key in a GUC at all, use Supabase Vault
 --    instead (see commented alternative below).
--- alter database postgres set app.settings.edge_function_base_url = '<YOUR-PROJECT-REF>.supabase.co/functions/v1';
--- alter database postgres set app.settings.anon_key = '<YOUR-ANON-KEY>';
-
 -- 2) Harden the function so a missing/blank setting throws instead of
 --    silently building a NULL URL and swallowing the failure.
 create or replace function public.invoke_dispatch_edge_function()
 returns void
 language plpgsql security definer
+set search_path = public
 as $$
 declare
   batch_payload jsonb;
-  base_url text := coalesce(current_setting('app.settings.edge_function_base_url', true), '<YOUR-PROJECT-REF>.supabase.co/functions/v1');
-  anon_key text := coalesce(current_setting('app.settings.anon_key', true), '<YOUR-ANON-KEY>');
+  base_url text := nullif(trim(current_setting('app.settings.edge_function_base_url', true)), '');
+  anon_key text := nullif(trim(current_setting('app.settings.anon_key', true)), '');
   edge_function_url text;
   request_id bigint;
 begin

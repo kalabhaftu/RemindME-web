@@ -98,7 +98,7 @@ export function Calendar({
 
   return (
     <div 
-      className="bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] p-6 backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+      className="rm-surface rounded-[28px] p-6"
       style={{
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
       }}

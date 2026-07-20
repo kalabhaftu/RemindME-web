@@ -35,14 +35,14 @@ export function CustomSelect({ value, onChange, options, placeholder, className 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-colors text-left text-sm"
+        className="rm-control w-full flex items-center justify-between rounded-[12px] px-4 py-3 text-[rgba(255,255,255,0.92)] transition-colors text-left text-sm"
       >
         <span className="truncate pr-2">{selectedOption ? selectedOption.label : placeholder || 'Select...'}</span>
         <ChevronDown size={16} className={`shrink-0 text-[rgba(255,255,255,0.4)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 w-full mt-1 bg-[#1A1A1A] border border-[rgba(255,255,255,0.08)] rounded-[8px] shadow-xl overflow-hidden py-1 max-h-60 overflow-y-auto">
+        <div className="rm-surface-elevated absolute z-50 top-full left-0 w-full mt-1 rounded-[12px] shadow-xl overflow-hidden py-1 max-h-60 overflow-y-auto">
           {options.map((option) => (
             <button
               key={option.value}
