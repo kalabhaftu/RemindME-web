@@ -2007,13 +2007,6 @@ $$;
 -- =============================================
 -- Automatic Vault Configuration
 -- =============================================
-DO $
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM vault.decrypted_secrets WHERE name = 'dispatch_edge_function_base_url') THEN
-    PERFORM vault.create_secret('https://wysdrfnnsoaphrfxcotx.supabase.co/functions/v1', 'dispatch_edge_function_base_url');
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM vault.decrypted_secrets WHERE name = 'dispatch_anon_key') THEN
-    PERFORM vault.create_secret('sb_publishable_Ft0eEnWaaX-t9xLkqdFOxA_DRHkYrJ9', 'dispatch_anon_key');
-  END IF;
-END $;
+DELETE FROM vault.secrets WHERE name IN ('dispatch_edge_function_base_url', 'dispatch_anon_key');
+SELECT vault.create_secret('https://wysdrfnnsoaphrfxcotx.supabase.co/functions/v1', 'dispatch_edge_function_base_url');
+SELECT vault.create_secret('sb_publishable_Ft0eEnWaaX-t9xLkqdFOxA_DRHkYrJ9', 'dispatch_anon_key');
