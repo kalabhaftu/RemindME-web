@@ -1,3 +1,4 @@
+drop function if exists public.reminder_occurrences_due(timestamptz);
 create or replace function public.reminder_occurrences_due(run_time timestamptz)
 returns table(
   reminder_item_id uuid,

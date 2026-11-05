@@ -104,5 +104,5 @@ END;
 $$;
 
 -- 4. Clean up legacy/deprecated cron job 'dispatch_engine' and procedure
-SELECT cron.unschedule('dispatch_engine');
+SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname = 'dispatch_engine';
 DROP PROCEDURE IF EXISTS public.trigger_dispatch_engine();

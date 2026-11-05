@@ -1,3 +1,4 @@
+drop function if exists public.reminder_occurrences_due(timestamptz);
 alter table public.in_app_notifications
   add column if not exists data jsonb not null default '{}'::jsonb;
 
