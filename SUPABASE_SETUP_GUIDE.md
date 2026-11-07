@@ -212,6 +212,18 @@ RESEND_API_KEY=...
 ENCRYPTION_KEY=...
 ```
 
+#### GitHub Actions Secrets for Supabase CI/CD (`deploy-supabase.yml`):
+To enable automated migration execution and Edge Function deployment whenever code is pushed to `main`, configure these repository secrets under **Settings &rarr; Secrets and variables &rarr; Actions**:
+
+| Secret Name | Value Description | Example / Location |
+| :--- | :--- | :--- |
+| `SUPABASE_ACCESS_TOKEN` | Supabase Personal Access Token | Generate at [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) |
+| `SUPABASE_PROJECT_ID` | Supabase Project Reference ID | Found in Project Settings &rarr; General (e.g., `wysdrfnnsoaphrfxcotx`) |
+| `SUPABASE_DB_PASSWORD` | Supabase Database Password | Password chosen during project creation (e.g., `kalremindme12`) |
+| `RESEND_API_KEY` | Resend API Key for Email reminders | Optional in CI, syncs to Edge Functions |
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase Service Account JSON (compact single line) | Optional in CI, syncs to Edge Functions for FCM push |
+| `ENCRYPTION_KEY` | 32-character AES encryption key for bot tokens | Optional in CI, syncs to Edge Functions |
+
 #### Syncing to Vercel via CLI:
 ```bash
 cd RemindME-web
