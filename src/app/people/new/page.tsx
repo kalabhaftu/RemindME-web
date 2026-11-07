@@ -19,7 +19,7 @@ export default function NewPersonPage() {
 
   const [name, setName] = useState('')
   const [birthdate, setBirthdate] = useState('')
-  const [gender, setGender] = useState('unspecified')
+  const [gender, setGender] = useState('male')
   const [relationship, setRelationship] = useState('friend')
   const [customRelationship, setCustomRelationship] = useState('')
   const [notes, setNotes] = useState('')

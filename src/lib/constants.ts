@@ -9,8 +9,6 @@ export const RELATIONSHIP_LABELS: Record<string, { label: string; emoji: string 
 export const GENDER_LABELS: Record<string, { label: string; color: string }> = {
   male: { label: 'Male', color: 'rgba(52, 211, 153, 0.25)' },
   female: { label: 'Female', color: 'rgba(236, 72, 153, 0.25)' },
-  nonbinary: { label: 'Non-binary', color: 'rgba(139, 92, 246, 0.25)' },
-  unspecified: { label: '—', color: 'rgba(255,255,255,0.06)' },
 }
 
 export const ZODIAC_META: Record<string, { glyph: string; color: string }> = {

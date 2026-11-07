@@ -17,7 +17,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
   const [prefsMatrix, setPrefsMatrix] = useState<PrefsMatrix | null>(null)
   const [name, setName] = useState('')
   const [birthdate, setBirthdate] = useState('')
-  const [gender, setGender] = useState('unspecified')
+  const [gender, setGender] = useState('male')
   const [relationship, setRelationship] = useState('friend')
   const [notes, setNotes] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
@@ -38,7 +38,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
         const p = data.person_details
         if (p) {
           setBirthdate(p.birthdate ? (p.birthdate.length === 10 ? `${p.birthdate}T00:00` : p.birthdate.slice(0, 16)) : '')
-          setGender(p.gender ?? 'unspecified')
+          setGender(p.gender ?? 'male')
           setRelationship(p.relationship ?? 'friend')
           setAvatarUrl(p.avatar_url ?? '')
         }
