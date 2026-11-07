@@ -15,6 +15,8 @@ jobs:
   deploy:
     name: Deploy to Supabase
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_YES: "true"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -40,8 +42,8 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          supabase functions deploy dispatch-reminder --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
-          supabase functions deploy dispatch-nudge --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase functions deploy dispatch-reminder --no-verify-jwt --yes
+          supabase functions deploy dispatch-nudge --no-verify-jwt --yes
 
       - name: Sync Edge Function Secrets
         env:
@@ -58,7 +60,7 @@ jobs:
           
           if [ ${#SECRETS_ARGS[@]} -gt 0 ]; then
             echo "Setting Supabase Edge Function secrets..."
-            supabase secrets set "${SECRETS_ARGS[@]}" --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+            supabase secrets set "${SECRETS_ARGS[@]}" --yes
           else
             echo "No optional backend secrets provided; skipping secret injection."
           fi
