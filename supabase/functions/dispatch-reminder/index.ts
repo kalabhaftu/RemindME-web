@@ -333,6 +333,7 @@ serve(async (req) => {
         scheduled_for: new Date().toISOString(),
         sent_at: status === 'sent' ? new Date().toISOString() : null,
         error_message: errorMessage,
+        preference_id: item.preference_id ?? null,
       })
 
       const occurrenceKey = `${item.reminder_item_id}:${item.occurrence_date}`
