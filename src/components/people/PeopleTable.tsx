@@ -6,7 +6,7 @@ import { ChevronUp, ChevronDown, Search } from 'lucide-react'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { getAge, getDaysUntilBirthday, getZodiacSign } from '@/utils/computed'
 import { TagPill } from '@/components/ui/TagPill'
-import { GENDER_LABELS, RELATIONSHIP_LABELS, ZODIAC_META, SortOption } from '@/lib/constants'
+import { GENDER_LABELS, GENDER_OPTIONS, RELATIONSHIP_LABELS, ZODIAC_META, SortOption } from '@/lib/constants'
 import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import { EmptyState } from '@/components/EmptyState'
@@ -149,8 +149,8 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
           className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full px-4 py-2.5 text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 font-semibold appearance-none pr-8 cursor-pointer"
         >
           <option value="all">All genders</option>
-          {Object.entries(GENDER_LABELS).filter(([k]) => k !== 'unspecified').map(([key, { label }]) => (
-            <option key={key} value={key}>{label}</option>
+          {GENDER_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
           ))}
         </select>
         <div className="flex gap-1.5 p-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full flex-wrap">
@@ -197,7 +197,8 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
           </thead>
           <tbody>
             {rows.map(row => {
-              const gender = GENDER_LABELS[row.gender] ?? GENDER_LABELS.unspecified
+              const defaultGender = { label: '—', color: 'rgba(255,255,255,0.06)' }
+              const gender = (row.gender && GENDER_LABELS[row.gender]) ? GENDER_LABELS[row.gender] : defaultGender
               const rel = RELATIONSHIP_LABELS[row.relationship] ?? RELATIONSHIP_LABELS.other
               const zodiac = ZODIAC_META[row.zodiac] ?? { glyph: '★', color: 'rgba(255,255,255,0.06)' }
               const ageProgress = Math.min(row.age / 100, 1) * 100
@@ -229,7 +230,11 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <TagPill color={gender.color}>{gender.label}</TagPill>
+                    {gender.label !== '—' ? (
+                      <TagPill color={gender.color}>{gender.label}</TagPill>
+                    ) : (
+                      <span className="text-[13px] text-[rgba(255,255,255,0.45)]">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 hidden lg:table-cell">
                     <TagPill color={zodiac.color}>

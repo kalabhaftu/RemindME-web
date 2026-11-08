@@ -8,7 +8,7 @@ import { createReminder } from '@/app/actions/reminders'
 import { AppShell } from '@/components/AppShell'
 import { NotificationPrefsForm, useDefaultPrefs, prefsMatrixToPayload } from '@/components/forms/NotificationPrefs'
 import { CustomSelect } from '@/components/forms/CustomSelect'
-import { RELATIONSHIP_LABELS, GENDER_LABELS } from '@/lib/constants'
+import { RELATIONSHIP_LABELS, GENDER_OPTIONS } from '@/lib/constants'
 
 export default function NewPersonPage() {
   const router = useRouter()
@@ -148,7 +148,7 @@ export default function NewPersonPage() {
                 <CustomSelect
                   value={gender}
                   onChange={setGender}
-                  options={Object.entries(GENDER_LABELS).map(([value, { label }]) => ({ value, label }))}
+                  options={GENDER_OPTIONS.map(({ value, label }) => ({ value, label }))}
                 />
               </div>
               <div>

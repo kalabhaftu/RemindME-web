@@ -28,7 +28,8 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
   const age = birthdate ? getAge(birthdate) : null
   const days = birthdate ? getDaysUntilBirthday(birthdate) : null
   const zodiac = birthdate ? getZodiacSign(birthdate) : null
-  const gender = GENDER_LABELS[p?.gender ?? 'unspecified']
+  const defaultGender = { label: '—', color: 'rgba(255,255,255,0.06)' }
+  const gender = (p?.gender && GENDER_LABELS[p.gender]) ? GENDER_LABELS[p.gender] : defaultGender
   const rel = RELATIONSHIP_LABELS[p?.relationship ?? 'other']
   const zodiacMeta = zodiac ? ZODIAC_META[zodiac] : null
 
@@ -89,9 +90,11 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <TagPill color={gender.color}>{gender.label}</TagPill>
-          </div>
+          {gender.label !== '—' && (
+            <div className="flex gap-2">
+              <TagPill color={gender.color}>{gender.label}</TagPill>
+            </div>
+          )}
 
           {item.notes && (
             <div>

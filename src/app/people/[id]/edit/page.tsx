@@ -8,7 +8,7 @@ import { getReminder, updateReminder } from '@/app/actions/reminders'
 import { AppShell } from '@/components/AppShell'
 import { NotificationPrefsForm, prefsMatrixToPayload, PrefsMatrix } from '@/components/forms/NotificationPrefs'
 import { prefsFromItem } from '@/lib/prefs-utils'
-import { RELATIONSHIP_LABELS, GENDER_LABELS } from '@/lib/constants'
+import { RELATIONSHIP_LABELS, GENDER_OPTIONS } from '@/lib/constants'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 
 export default function EditPersonPage({ params }: { params: Promise<{ id: string }> }) {
@@ -156,8 +156,8 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Gender</label>
                 <select value={gender} onChange={e => setGender(e.target.value)}
                   className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60">
-                  {Object.entries(GENDER_LABELS).map(([key, { label }]) => (
-                    <option key={key} value={key}>{label}</option>
+                  {GENDER_OPTIONS.map(({ value, label }) => (
+                    <option key={value} value={value}>{label}</option>
                   ))}
                 </select>
               </div>
