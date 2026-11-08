@@ -111,17 +111,25 @@ The following secrets must be set in GitHub under **Settings &rarr; Secrets and 
 
 ---
 
-## 5. Mobile Version Bump
+## 5. Mobile Version Bump & Package Installer Fixes - [COMPLETED]
 
-* Bumped `RemindME-mobile/app/build.gradle.kts`:
-  * `versionCode = 6`
-  * `versionName = "1.0.6"`
+* **Root Cause of "App not installed as package appears to be invalid"**:
+  1. `<application>` tag in `AndroidManifest.xml` had `android:windowSoftInputMode="adjustResize"`, which is an `<activity>` attribute. This caused strict OEM Android PackageParser (`INSTALL_PARSE_FAILED_MANIFEST_MALFORMED`) to reject the package.
+  2. AGP 9.0 defaults `useLegacyPackaging = false`, leaving native libraries (`libandroidx.graphics.path.so`) uncompressed. Devices with mismatched page alignments fail on install.
+  3. `signingConfigs.release` lacked explicit `enableV1Signing = true`, preventing devices requiring JAR signatures from verifying the package.
+* **Fixes Applied**:
+  * Moved `android:windowSoftInputMode="adjustResize"` to `<activity android:name=".MainActivity">`.
+  * Added `enableV1Signing = true`, `enableV2Signing = true`, `enableV3Signing = true` to `signingConfigs.release`.
+  * Configured `packaging { jniLibs { useLegacyPackaging = true } }` so `.so` native libraries are compressed and extracted on install.
+  * Maintained `compileSdk = 36` (required by `androidx.core:1.18.0`) while targeting `targetSdk = 35` (Android 15).
+  * Bumped to `versionCode = 12`, `versionName = "1.0.8"`.
+  * Tagged and published release **`v1.0.8`** on GitHub Releases.
 
 ---
 
-## 6. Local Android Build Environment (Paused Until Fast Connection)
-* Root: `C:\Android\sdk` (contains `cmdline-tools/latest`, `platform-tools`).
-* When fast connection is available:
-  1. `winget install Microsoft.OpenJDK.21`
-  2. `sdkmanager "platforms;android-36" "build-tools;36.0.0"`
-  3. `./gradlew assembleRelease`
+## 6. Local Android Build Environment - [SETUP COMPLETED]
+
+* **JDK 17**: Installed Microsoft Build of OpenJDK 17 (`17.0.21.21`) at `C:\Program Files\Microsoft\jdk-17.0.21.21-hotspot`. `JAVA_HOME` set permanently.
+* **Android SDK**: `C:\Android\sdk` with `cmdline-tools/latest`, `platform-tools`, `platforms;android-36`, and `build-tools;36.0.0`.
+* **Config**: `local.properties` configured with `sdk.dir=C\:\\Android\\sdk` and Supabase keys.
+* **Build Command**: `cd RemindME-mobile; .\gradlew assembleDebug` / `.\gradlew assembleRelease`.
