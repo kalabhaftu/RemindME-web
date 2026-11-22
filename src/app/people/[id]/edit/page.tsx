@@ -19,6 +19,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
   const [birthdate, setBirthdate] = useState('')
   const [gender, setGender] = useState('male')
   const [relationship, setRelationship] = useState('friend')
+  const [customRelationship, setCustomRelationship] = useState('')
   const [notes, setNotes] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -40,6 +41,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
           setBirthdate(p.birthdate ? (p.birthdate.length === 10 ? `${p.birthdate}T00:00` : p.birthdate.slice(0, 16)) : '')
           setGender(p.gender ?? 'male')
           setRelationship(p.relationship ?? 'friend')
+          setCustomRelationship(p.custom_relationship ?? '')
           setAvatarUrl(p.avatar_url ?? '')
         }
         setPrefsMatrix(prefsFromItem(data))
@@ -63,6 +65,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
           birthdate,
           gender: gender as 'male' | 'female' | 'nonbinary' | 'unspecified',
           relationship: relationship as 'family' | 'partner' | 'friend' | 'colleague' | 'other',
+          custom_relationship: relationship === 'other' ? customRelationship.trim() : undefined,
           avatar_url: avatarUrl || undefined,
         },
         notification_preferences: prefsMatrix ? prefsMatrixToPayload(prefsMatrix) : [],
@@ -171,6 +174,20 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
                 </select>
               </div>
             </div>
+
+            {relationship === 'other' && (
+              <div>
+                <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Custom Relationship</label>
+                <input
+                  type="text"
+                  required
+                  value={customRelationship}
+                  onChange={e => setCustomRelationship(e.target.value)}
+                  placeholder="e.g. Neighbor, Mentor"
+                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.38)] focus:outline-none focus:border-[#3B82F6]/60"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Notes</label>
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}

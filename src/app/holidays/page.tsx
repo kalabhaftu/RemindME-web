@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { format, parseISO } from 'date-fns'
 import { Gift, Check } from 'lucide-react'
@@ -42,10 +42,14 @@ export default function HolidaysPage() {
   const [loadingHolidays, setLoadingHolidays] = useState(false)
   const [toggling, setToggling] = useState<string | null>(null)
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseRef = useRef<ReturnType<typeof createBrowserClient> | null>(null)
+  if (!supabaseRef.current) {
+    supabaseRef.current = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  const supabase = supabaseRef.current
 
   const loadSubscribed = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -74,7 +78,7 @@ export default function HolidaysPage() {
       )
     }
     setLoading(false)
-  }, [supabase])
+  }, [])
 
   const loadHolidays = useCallback(async (code: string) => {
     setLoadingHolidays(true)

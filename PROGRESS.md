@@ -1,6 +1,6 @@
 # RemindME Project Progress & Technical Roadmap
 
-Last Updated: November 7, 2026
+Last Updated: November 22, 2026
 
 ---
 
@@ -8,7 +8,7 @@ Last Updated: November 7, 2026
 
 * **Supabase Project ID**: `wysdrfnnsoaphrfxcotx` (Region: `eu-west-1` Ireland)
 * **Web Production URL**: `https://remind-me-web-roan.vercel.app`
-* **Mobile Releases**: GitHub Releases `kalabhaftu/RemindME-mobile` (`v1.0.6` bumped and ready for release)
+* **Mobile Releases**: GitHub Releases `kalabhaftu/RemindME-mobile` (`v1.0.9` released)
 * **Telegram Bot**: `@DE2XB_bot` (Bot ID: `7985462251`, Chat ID: `5627916804`)
 * **Primary Test Account**: `kalabhaftu05@gmail.com` (`5de1cc3c-1930-4ab0-8602-b845a3e6f474`)
 
@@ -133,3 +133,45 @@ The following secrets must be set in GitHub under **Settings &rarr; Secrets and 
 * **Android SDK**: `C:\Android\sdk` with `cmdline-tools/latest`, `platform-tools`, `platforms;android-36`, and `build-tools;36.0.0`.
 * **Config**: `local.properties` configured with `sdk.dir=C\:\\Android\\sdk` and Supabase keys.
 * **Build Command**: `cd RemindME-mobile; .\gradlew assembleDebug` / `.\gradlew assembleRelease`.
+
+---
+
+## 7. UI Logic, Z-Index, Session Trapping & Polish Overhaul - [COMPLETED]
+
+### A. Mobile Session & Offline Trapping Fixes:
+1. **Network-Aware Session Redirection**: In `Navigation.kt`, `SessionStatus.NotAuthenticated` now actively verifies network connectivity via `ConnectivityManager`. If online or `isSignOut`, it purges `AuthCache` and routes to `Login`, completely eliminating the session-trapping bug where expired tokens caused the app to enter a broken pseudo-offline mode with stale local records.
+2. **Account Change & 401 Purge**: In `OfflineReminderRepository.kt`, local SQLite cache dynamically compares records with `currentUserId()`, discarding mismatched cache. When online, fatal 401/unauthorized errors clear `AuthCache` and throw rather than serving stale cache.
+3. **Dedicated Cache Reset & Alarm Cancellation**:
+   - Added `clearLocalCache()` in `SettingsViewModel` and a confirmation dialog "Clear Local Cache & Reset" in `SettingsScreen`.
+   - `NotificationSchedulingService` now tracks scheduled request codes in SharedPreferences (`remindme_scheduled_alarms`) and implements `cancelAll()`, ensuring pending OS alarms are canceled upon logout or cache wipe.
+   - Guaranteed that local SQLite data, preferences, and alarms are wiped on sign-out even if the network call fails.
+
+### B. Mobile UI Polish & Z-Index Standardization:
+1. **PullToRefresh Window Stacking**: Removed custom platform `Popup` window and replaced with standard Material 3 `PullToRefreshBox` with `Modifier.align(Alignment.TopCenter).padding(top = 96.dp).zIndex(50f)`, eliminating status bar overlap.
+2. **DatePicker UTC Timezone Fix**: Fixed timezone shift bug in `DateTimePickerDialog.kt` where UTC epoch milliseconds were converted via local timezone, resulting in a -1 day offset for western hemisphere users (UTC-4 to UTC-10). Changed to `ZoneOffset.UTC`.
+3. **AppButton Disabled Alpha**: Added visible dimming (`alpha = 0.45f` on background, `0.5f` on content) to `AppButton` when `enabled = false`.
+4. **AppTextField ObscureText**: Fixed bug where `obscureText = true` was ignored in `AppTextField.kt`, ensuring `PasswordVisualTransformation()` is applied when typing passwords. Added `KeyboardActions` and `ImeAction.Done` for soft-keyboard form submission.
+5. **Login Message Flow**: Moved error/success banner inside the scrollable `Column` between the inputs and action button, eliminating the unaligned floating overlay that obscured the header.
+6. **TimePicker Theme Colors**: Added `TimePickerDefaults.colors(...)` to `NotificationPrefsForm.kt` matching `DateTimePickerDialog.kt`, ensuring dark theme compatibility.
+7. **Clean Secondary Navigation**: Removed redundant nested `AppCard` inside `QuickAddSheet` and redundant padding on `MainScreen` in `Navigation.kt`. Enabled offline and online deep-linking to reminder details from local notifications.
+
+### C. Web UI, Z-Index & Layout Corrections:
+1. **Z-Index Layering Standard**:
+   - Base content: `z-0` to `z-10`
+   - Sticky Island Navbar: `z-40`
+   - Dropdown menus & CustomSelect: `z-50`
+   - Modals & Templates Dialog: `z-[60]` (with backdrop click dismiss and scroll locking)
+   - Notifications / Toasts: `z-[70]`
+2. **Form Accessibility & Interactivity**:
+   - `CustomCheckbox`: Fixed non-interactive checkbox by adding `onClick` toggle and accessible hidden checkbox input.
+   - `CustomSelect`: Added `relative z-50` when open, `Escape` key dismissal, and `aria-haspopup`/`aria-expanded`.
+   - `Login`: Added `<form onSubmit>` handler to prevent default browser GET query param leakage on Enter.
+   - `Search`: Sanitized queries to strip punctuation before PostgREST `.or()` calls.
+3. **Realtime Channel Leak Prevention**:
+   - Wrapped `createBrowserClient` with `useRef` across `DashboardClient`, `PeopleClient`, `SubscriptionsClient`, `TasksClient`, and `HolidaysPage`, preventing endless channel re-subscriptions.
+4. **Templates & Edit Parity**:
+   - `applyTemplate`: Transformed from direct incomplete inserts to routing to `/people/new`, `/subscriptions/new`, or `/tasks/new` with pre-filled `name` and `notes` URL params.
+   - Added URL param hydration to `NewPersonPage`, `NewSubscriptionPage`, and `NewTaskPage`.
+   - `EditPersonPage`: Added missing `custom_relationship` state, input field, and payload submission when relationship is `'other'`.
+   - `EditTaskPage`: Preserved existing recurrence rules `ends` and `ends_value` instead of overwriting with `'never'`.
+   - `Calendar`: Replaced raw text `&lt;` and `&gt;` with Lucide `ChevronLeft` and `ChevronRight` icons.

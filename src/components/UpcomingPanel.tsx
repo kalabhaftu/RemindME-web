@@ -34,8 +34,11 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
     if (item.category === 'person' && item.person_details) {
       const p = item.person_details
       if (!p.birthdate) return null
-      // We calculate age at the occurrence date
-      const age = new Date(occ.date).getFullYear() - new Date(p.birthdate).getFullYear()
+      const birthYear = new Date(p.birthdate).getFullYear()
+      const occYear = new Date(occ.date).getFullYear()
+      if (isNaN(birthYear) || isNaN(occYear)) return null
+      const age = occYear - birthYear
+      if (age <= 0) return null
       return (
         <div className="flex gap-4 mt-2 text-[12px] font-mono text-[rgba(255,255,255,0.6)]">
           <span>Turns {age}</span>

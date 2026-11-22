@@ -7,6 +7,7 @@ import {
 } from 'date-fns'
 import { ReminderOccurrence } from '@/utils/computed-fields'
 import { cn } from '@/lib/cn'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export type CalendarView = 'month' | 'week' | 'agenda'
 
@@ -109,15 +110,17 @@ export function Calendar({
           <ViewToggle view={view} onViewChange={onViewChange} />
           <button 
             onClick={() => navigate(-1)} 
+            aria-label="Previous month"
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.8)] transition-all cursor-pointer active:scale-90"
           >
-            &lt;
+            <ChevronLeft size={16} />
           </button>
           <button 
             onClick={() => navigate(1)} 
+            aria-label="Next month"
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.8)] transition-all cursor-pointer active:scale-90"
           >
-            &gt;
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>

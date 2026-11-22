@@ -471,6 +471,12 @@ export default function SettingsPage() {
       isDestructive: true,
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          localStorage.removeItem('defaultPrefsMatrix')
+          localStorage.removeItem('defaultChannels')
+          localStorage.removeItem('defaultLeadTime')
+          localStorage.removeItem('defaultCustomTime')
+        } catch {}
         const { error } = await supabaseRef.current.auth.signOut({ scope: 'global' })
         if (error) showToast(error.message, 'error')
         else {
@@ -873,6 +879,12 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={async () => {
+                  try {
+                    localStorage.removeItem('defaultPrefsMatrix')
+                    localStorage.removeItem('defaultChannels')
+                    localStorage.removeItem('defaultLeadTime')
+                    localStorage.removeItem('defaultCustomTime')
+                  } catch {}
                   await supabaseRef.current.auth.signOut()
                   router.refresh()
                   window.location.href = '/login'
@@ -905,7 +917,7 @@ export default function SettingsPage() {
       </main>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-full shadow-lg text-xs font-bold transition-all ${
+        <div className={`fixed bottom-6 right-6 z-[70] px-4 py-3 rounded-full shadow-lg text-xs font-bold transition-all ${
           toast.type === 'error' ? 'bg-red-500/10 border border-red-500/20 text-red-400' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
         }`}>
           {toast.message}

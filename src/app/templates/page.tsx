@@ -75,20 +75,27 @@ export default function TemplatesPage() {
     setTemplates(prev => prev.filter(t => t.id !== id))
   }
 
-  const applyTemplate = async (template: Template) => {
-    // Create a reminder item from template defaults
-    const { data: { user } } = await supabase.current.auth.getUser()
-    if (!user) return
+  const applyTemplate = (template: Template) => {
+    const query = new URLSearchParams()
+    if (template.name) query.set('name', template.name)
+    if (template.notes_template) query.set('notes', template.notes_template)
+    const qs = query.toString() ? `?${query.toString()}` : ''
 
-    const { error } = await supabase.current.from('reminder_items').insert({
-      user_id: user.id,
-      name: template.name,
-      category: template.category,
-      notes: template.notes_template,
-      color_accent: template.color_accent,
-    })
-
-    if (!error) router.push('/')
+    switch (template.category) {
+      case 'person':
+        router.push(`/people/new${qs}`)
+        break
+      case 'subscription':
+        router.push(`/subscriptions/new${qs}`)
+        break
+      case 'custom_holiday':
+        router.push(`/holidays`)
+        break
+      case 'task':
+      default:
+        router.push(`/tasks/new${qs}`)
+        break
+    }
   }
 
   const categoryIcon = (cat: string) => {
@@ -154,8 +161,13 @@ export default function TemplatesPage() {
       </div>
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0c14]/55 backdrop-blur-[18px]">
-          <div className="bg-[rgba(255,255,255,0.06)] w-full max-w-sm rounded-[20px] border border-[rgba(255,255,255,0.08)] p-6">
+        <div 
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-[#0a0c14]/55 backdrop-blur-[18px] p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCreate(false)
+          }}
+        >
+          <div className="bg-[rgba(255,255,255,0.06)] w-full max-w-sm rounded-[20px] border border-[rgba(255,255,255,0.08)] p-6 shadow-2xl">
             <h2 className="text-lg font-semibold text-[rgba(255,255,255,0.92)] mb-4">New Template</h2>
             <form onSubmit={createTemplate} className="space-y-4">
               <div>

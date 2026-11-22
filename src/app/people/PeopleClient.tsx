@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { AppShell, AddButton } from '@/components/AppShell'
 import { PeopleTable } from '@/components/people/PeopleTable'
@@ -11,10 +11,14 @@ export function PeopleClient({ initialItems }: { initialItems: ReminderItemWithD
   const [items, setItems] = useState(initialItems)
   const router = useRouter()
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseRef = useRef<ReturnType<typeof createBrowserClient> | null>(null)
+  if (!supabaseRef.current) {
+    supabaseRef.current = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  const supabase = supabaseRef.current
 
   useEffect(() => {
     setItems(initialItems)
@@ -28,7 +32,7 @@ export function PeopleClient({ initialItems }: { initialItems: ReminderItemWithD
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [supabase, router])
+  }, [router])
 
   const people = items.filter(i => i.category === 'person')
 

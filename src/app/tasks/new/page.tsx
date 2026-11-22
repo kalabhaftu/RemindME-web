@@ -27,6 +27,15 @@ export default function NewTaskPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const nameParam = params.get('name')
+    const notesParam = params.get('notes')
+    if (nameParam) setName(nameParam)
+    if (notesParam) setNotes(notesParam)
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !dueAt) {

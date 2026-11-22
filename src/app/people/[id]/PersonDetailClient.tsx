@@ -18,11 +18,18 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
   const birthdate = p?.birthdate
 
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
   const handleDelete = async () => {
-    await deleteReminder(item.id)
-    router.push('/people')
-    router.refresh()
+    if (isPending) return
+    setIsPending(true)
+    try {
+      await deleteReminder(item.id)
+      router.push('/people')
+      router.refresh()
+    } catch {
+      setIsPending(false)
+    }
   }
 
   const age = birthdate ? getAge(birthdate) : null
@@ -135,10 +142,11 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
               Cancel
             </button>
             <button 
+              disabled={isPending}
               onClick={handleDelete}
-              className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
-              Delete
+              {isPending ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </div>

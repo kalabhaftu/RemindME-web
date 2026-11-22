@@ -162,7 +162,7 @@ export function NotificationsClient({
               occurrenceGroups.next3.length === 0 &&
               occurrenceGroups.next7.length === 0 && (
               <div className="p-12 border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] rounded-[12px]">
-                <EmptyState iconPath="/icons/3d/empty_notifications.png" message="No in-app notifications yet." />
+                <EmptyState iconPath="/icons/3d/empty_notifications.png" message="No upcoming reminders for the next 7 days." />
               </div>
             )}
           </div>

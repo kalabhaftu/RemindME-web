@@ -133,7 +133,13 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form className="space-y-5">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleLogin(e)
+            }}
+            className="space-y-5"
+          >
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 ml-1">Email Address</label>
               <input
@@ -178,6 +184,7 @@ export default function LoginPage() {
 
             <div className="flex gap-4 pt-2">
               <button
+                type="submit"
                 onClick={handleLogin}
                 disabled={loading}
                 className="flex-1 py-3 px-4 rounded-full bg-[#3B82F6] hover:bg-[#5B9CFF] text-white font-semibold text-xs uppercase tracking-wider transition-all disabled:opacity-50 shadow-[0_4px_12px_rgba(59,130,246,0.3)] border-t border-[rgba(255,255,255,0.25)] active:scale-95 cursor-pointer"
@@ -185,9 +192,10 @@ export default function LoginPage() {
                 Sign In
               </button>
               <button
+                type="button"
                 onClick={handleSignUp}
                 disabled={loading}
-                className="flex-1 py-3 px-4 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] text-text-primary font-semibold text-xs uppercase tracking-wider hover:bg-[rgba(255,255,255,0.08)] transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] text-white font-semibold text-xs uppercase tracking-wider hover:bg-[rgba(255,255,255,0.08)] transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
               >
                 Sign Up
               </button>
@@ -196,7 +204,7 @@ export default function LoginPage() {
 
           <div className="mt-6 flex items-center justify-between">
             <hr className="w-full border-[rgba(255,255,255,0.06)]" />
-            <span className="px-3 text-text-tertiary text-xs font-semibold uppercase tracking-wider">or</span>
+            <span className="px-3 text-gray-400 text-xs font-semibold uppercase tracking-wider">or</span>
             <hr className="w-full border-[rgba(255,255,255,0.06)]" />
           </div>
 

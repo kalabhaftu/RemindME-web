@@ -24,16 +24,27 @@ export function CustomSelect({ value, onChange, options, placeholder, className 
         setIsOpen(false)
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false)
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen])
 
   const selectedOption = options.find(o => o.value === value)
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
+    <div className={`relative ${isOpen ? 'z-50' : 'z-0'} ${className}`} ref={containerRef}>
       <button
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         className="rm-control w-full flex items-center justify-between rounded-[12px] px-4 py-3 text-[rgba(255,255,255,0.92)] transition-colors text-left text-sm"
       >
@@ -42,11 +53,16 @@ export function CustomSelect({ value, onChange, options, placeholder, className 
       </button>
 
       {isOpen && (
-        <div className="rm-surface-elevated absolute z-50 top-full left-0 w-full mt-1 rounded-[12px] shadow-xl overflow-hidden py-1 max-h-60 overflow-y-auto">
+        <div 
+          role="listbox"
+          className="rm-surface-elevated absolute z-50 top-full left-0 w-full mt-1 rounded-[12px] shadow-2xl overflow-hidden py-1 max-h-60 overflow-y-auto border border-[var(--glass-border)]"
+        >
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
+              role="option"
+              aria-selected={value === option.value}
               onClick={() => {
                 onChange(option.value)
                 setIsOpen(false)

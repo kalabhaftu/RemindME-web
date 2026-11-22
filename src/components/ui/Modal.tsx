@@ -13,16 +13,27 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
-    if (isOpen) document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = ''
+    }
   }, [isOpen, onClose])
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+    >
       <div 
-        className="rm-surface-elevated w-full max-w-md rounded-2xl overflow-hidden"
+        className="rm-surface-elevated w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-[var(--glass-border)]"
         role="dialog"
         aria-modal="true"
       >

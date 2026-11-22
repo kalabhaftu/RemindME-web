@@ -34,8 +34,10 @@ export default function SearchPage() {
   }, [])
 
   const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
+    const sanitized = q.replace(/[,.()]/g, ' ').trim()
+    if (!sanitized) {
       setResults([])
+      setLoading(false)
       return
     }
     setLoading(true)
@@ -47,7 +49,7 @@ export default function SearchPage() {
         .from('reminder_items')
         .select('*, person_details(*), subscription_details(*), task_details(*)')
         .eq('user_id', user.id)
-        .or(`name.ilike.%${q}%,notes.ilike.%${q}%`)
+        .or(`name.ilike.%${sanitized}%,notes.ilike.%${sanitized}%`)
         .order('updated_at', { ascending: false })
         .limit(20)
 

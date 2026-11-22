@@ -14,11 +14,18 @@ export function TaskDetailClient({ item }: { item: ReminderItemWithDetails }) {
   const router = useRouter()
   
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
   const handleDelete = async () => {
-    await deleteReminder(item.id)
-    router.push('/tasks')
-    router.refresh()
+    if (isPending) return
+    setIsPending(true)
+    try {
+      await deleteReminder(item.id)
+      router.push('/tasks')
+      router.refresh()
+    } catch {
+      setIsPending(false)
+    }
   }
 
   const bgColor = item.color_accent || '#3B82F6'
@@ -114,10 +121,11 @@ export function TaskDetailClient({ item }: { item: ReminderItemWithDetails }) {
               Cancel
             </button>
             <button 
+              disabled={isPending}
               onClick={handleDelete}
-              className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
-              Delete
+              {isPending ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </div>

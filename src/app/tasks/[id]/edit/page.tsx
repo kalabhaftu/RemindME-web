@@ -72,7 +72,8 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
         recurrence_rules: {
           frequency,
           interval_count: 1,
-          ends: 'never',
+          ends: (item.recurrence_rules?.ends as 'never' | 'after_occurrences' | 'on_date') ?? 'never',
+          ends_value: item.recurrence_rules?.ends_value ?? undefined,
         },
         notification_preferences: prefsMatrix ? prefsMatrixToPayload(prefsMatrix) : [],
       })

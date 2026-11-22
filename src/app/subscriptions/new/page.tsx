@@ -31,6 +31,15 @@ export default function NewSubscriptionPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const nameParam = params.get('name')
+    const notesParam = params.get('notes')
+    if (nameParam) setName(nameParam)
+    if (notesParam) setNotes(notesParam)
+  }, [])
+
   const resolveLogo = async () => {
     if (!name.trim()) return
     setResolvingLogo(true)

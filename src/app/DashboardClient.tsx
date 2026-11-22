@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -28,10 +28,14 @@ export default function DashboardClient({ initialReminders }: { initialReminders
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null)
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseRef = useRef<ReturnType<typeof createBrowserClient> | null>(null)
+  if (!supabaseRef.current) {
+    supabaseRef.current = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  const supabase = supabaseRef.current
   const router = useRouter()
 
   useEffect(() => { setReminders(initialReminders) }, [initialReminders])
@@ -47,7 +51,7 @@ export default function DashboardClient({ initialReminders }: { initialReminders
       .on('postgres_changes', { event: '*', schema: 'public', table: 'escalation_state' }, () => router.refresh())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [supabase, router])
+  }, [router])
 
   const markDone = async (id: string, occurrenceDate: string) => {
     const { error } = await supabase.from('escalation_state').upsert({
@@ -178,7 +182,7 @@ export default function DashboardClient({ initialReminders }: { initialReminders
 
       {toast && (
         <div 
-          className={`fixed bottom-6 right-6 px-5 py-3 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] flex items-center gap-2.5 text-xs font-semibold pointer-events-auto transition-all duration-300 z-50`}
+          className={`fixed bottom-6 right-6 px-5 py-3 rounded-full border shadow-[0_12px_40px_rgba(0,0,0,0.5)] flex items-center gap-2.5 text-xs font-semibold pointer-events-auto transition-all duration-300 z-[70]`}
           style={{
             backdropFilter: 'blur(20px)',
             backgroundColor: toast.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
