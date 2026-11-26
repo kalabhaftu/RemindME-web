@@ -11,6 +11,8 @@ import { cn } from '@/lib/cn'
 import Link from 'next/link'
 import { EmptyState } from '@/components/EmptyState'
 import { ResilientBrandImage } from '@/components/ui/ResilientBrandImage'
+import { CustomSelect } from '@/components/forms/CustomSelect'
+import { GlassCard, GlassTabs } from '@/components/liquid-glass'
 
 type PersonRow = {
   id: string
@@ -133,56 +135,43 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
             className="w-full pl-10 pr-4 py-2.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.38)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-medium"
           />
         </div>
-        <select
-          value={filterRelationship}
-          onChange={e => setFilterRelationship(e.target.value)}
-          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full px-4 py-2.5 text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 font-semibold appearance-none pr-8 cursor-pointer"
-        >
-          <option value="all">All relationships</option>
-          {Object.entries(RELATIONSHIP_LABELS).map(([key, { label }]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
-        <select
-          value={filterGender}
-          onChange={e => setFilterGender(e.target.value)}
-          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full px-4 py-2.5 text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 font-semibold appearance-none pr-8 cursor-pointer"
-        >
-          <option value="all">All genders</option>
-          {GENDER_OPTIONS.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-        <div className="flex gap-1.5 p-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full flex-wrap">
-          {([
-            ['days_asc', 'Closest'],
-            ['name_asc', 'A–Z'],
-            ['age_desc', 'Age'],
-            ['relationship', 'Relationship'],
-            ['recent', 'Recent'],
-          ] as [SortOption, string][]).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => toggleSort(key)}
-              className={cn(
-                'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer',
-                sort === key
-                  ? 'bg-[#3B82F6] text-white shadow-sm border-t border-[rgba(255,255,255,0.25)]'
-                  : 'text-gray-400 hover:text-white'
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="w-44">
+          <CustomSelect
+            value={filterRelationship}
+            onChange={setFilterRelationship}
+            options={[
+              { value: 'all', label: 'All relationships' },
+              ...Object.entries(RELATIONSHIP_LABELS).map(([key, { label }]) => ({ value: key, label })),
+            ]}
+          />
         </div>
+        <div className="w-40">
+          <CustomSelect
+            value={filterGender}
+            onChange={setFilterGender}
+            options={[
+              { value: 'all', label: 'All genders' },
+              ...GENDER_OPTIONS.map(({ value, label }) => ({ value, label })),
+            ]}
+          />
+        </div>
+        <GlassTabs<SortOption>
+          aria-label="Sort people"
+          value={sort}
+          onValueChange={toggleSort}
+          size="sm"
+          highlightClassName="bg-[#3B82F6] text-white"
+          options={[
+            { value: 'days_asc', label: 'Closest' },
+            { value: 'name_asc', label: 'A–Z' },
+            { value: 'age_desc', label: 'Age' },
+            { value: 'relationship', label: 'Relationship' },
+            { value: 'recent', label: 'Recent' },
+          ]}
+        />
       </div>
 
-      <div 
-        className="overflow-x-auto rounded-[28px] border border-[rgba(255,255,255,0.06)] bg-[rgba(15,18,28,0.45)] backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)] no-scrollbar"
-        style={{
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
-        }}
-      >
+      <GlassCard tint={0.48} blur={14} className="overflow-x-auto rounded-[28px] no-scrollbar">
         <table className="w-full min-w-0 text-left border-collapse">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
@@ -265,7 +254,7 @@ export function PeopleTable({ items }: { items: ReminderItemWithDetails[] }) {
             })}
           </tbody>
         </table>
-      </div>
+      </GlassCard>
 
       <p className="text-[12px] text-[rgba(255,255,255,0.38)]">{rows.length} {rows.length === 1 ? 'person' : 'people'}</p>
     </div>

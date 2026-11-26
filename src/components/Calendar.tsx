@@ -8,6 +8,7 @@ import {
 import { ReminderOccurrence } from '@/utils/computed-fields'
 import { cn } from '@/lib/cn'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { GlassCard, GlassButton, GlassTabs } from '@/components/liquid-glass'
 
 export type CalendarView = 'month' | 'week' | 'agenda'
 
@@ -48,20 +49,18 @@ function DayDots({ dayOccurrences }: { dayOccurrences: ReminderOccurrence[] }) {
 function ViewToggle({ view, onViewChange }: { view: CalendarView; onViewChange?: (v: CalendarView) => void }) {
   if (!onViewChange) return null
   return (
-    <div className="flex gap-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full p-1">
-      {(['month', 'week', 'agenda'] as CalendarView[]).map(v => (
-        <button
-          key={v}
-          onClick={() => onViewChange(v)}
-          className={cn(
-            'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 capitalize cursor-pointer',
-            view === v ? 'bg-[#3B82F6] text-white shadow-sm border-t border-[rgba(255,255,255,0.2)]' : 'text-[rgba(255,255,255,0.5)] hover:text-white'
-          )}
-        >
-          {v}
-        </button>
-      ))}
-    </div>
+    <GlassTabs<CalendarView>
+      aria-label="Calendar View"
+      value={view}
+      onValueChange={onViewChange}
+      size="sm"
+      highlightClassName="bg-[#3B82F6] text-white"
+      options={[
+        { value: 'month', label: 'Month' },
+        { value: 'week', label: 'Week' },
+        { value: 'agenda', label: 'Agenda' },
+      ]}
+    />
   )
 }
 
@@ -98,30 +97,27 @@ export function Calendar({
     : format(currentDate, 'MMMM yyyy')
 
   return (
-    <div 
-      className="rm-surface rounded-[28px] p-6"
-      style={{
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
-      }}
-    >
+    <GlassCard tint={0.58} blur={14} className="rounded-[28px] p-6">
       <div className="flex items-center justify-between mb-6 gap-2">
         <h2 className="text-[14px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.85)]">{headerLabel}</h2>
         <div className="flex items-center gap-2">
           <ViewToggle view={view} onViewChange={onViewChange} />
-          <button 
-            onClick={() => navigate(-1)} 
+          <GlassButton
+            size="sm"
+            onClick={() => navigate(-1)}
             aria-label="Previous month"
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.8)] transition-all cursor-pointer active:scale-90"
+            className="w-8 h-8 !px-0"
           >
             <ChevronLeft size={16} />
-          </button>
-          <button 
-            onClick={() => navigate(1)} 
+          </GlassButton>
+          <GlassButton
+            size="sm"
+            onClick={() => navigate(1)}
             aria-label="Next month"
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.8)] transition-all cursor-pointer active:scale-90"
+            className="w-8 h-8 !px-0"
           >
             <ChevronRight size={16} />
-          </button>
+          </GlassButton>
         </div>
       </div>
 
@@ -211,6 +207,6 @@ export function Calendar({
           )}
         </div>
       )}
-    </div>
+    </GlassCard>
   )
 }

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { AppShell } from '@/components/AppShell'
 import { EmptyState } from '@/components/EmptyState'
+import { CustomSelect } from '@/components/forms/CustomSelect'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 import { Plus, Trash2, CheckSquare, User, RefreshCw, Gift, Copy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -112,12 +114,14 @@ export default function TemplatesPage() {
     <AppShell
       title="Templates"
       action={
-        <button
+        <GlassButton
+          material="tinted"
+          size="sm"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-4 py-2 rounded-[8px] text-sm font-medium transition-colors"
+          className="bg-[#3B82F6] text-white"
         >
           <Plus size={16} /> New
-        </button>
+        </GlassButton>
       }
     >
       <div className="max-w-2xl mx-auto space-y-3">
@@ -131,7 +135,7 @@ export default function TemplatesPage() {
           </div>
         ) : (
           templates.map(t => (
-            <div key={t.id} className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] flex items-center gap-3 group">
+            <GlassCard key={t.id} tint={0.48} blur={14} className="p-4 rounded-[18px] flex items-center gap-3 group">
               <div className="text-[#3B82F6]">{categoryIcon(t.category)}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-[rgba(255,255,255,0.92)] truncate">{t.name}</div>
@@ -155,7 +159,7 @@ export default function TemplatesPage() {
                   <Trash2 size={16} />
                 </button>
               </div>
-            </div>
+            </GlassCard>
           ))
         )}
       </div>
@@ -167,7 +171,7 @@ export default function TemplatesPage() {
             if (e.target === e.currentTarget) setShowCreate(false)
           }}
         >
-          <div className="bg-[rgba(255,255,255,0.06)] w-full max-w-sm rounded-[20px] border border-[rgba(255,255,255,0.08)] p-6 shadow-2xl">
+          <GlassCard live tint={0.72} blur={16} className="w-full max-w-sm rounded-[24px] p-6 shadow-2xl">
             <h2 className="text-lg font-semibold text-[rgba(255,255,255,0.92)] mb-4">New Template</h2>
             <form onSubmit={createTemplate} className="space-y-4">
               <div>
@@ -183,16 +187,16 @@ export default function TemplatesPage() {
               </div>
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Category</label>
-                <select
+                <CustomSelect
                   value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-sm focus:outline-none focus:border-[#3B82F6]/60"
-                >
-                  <option value="task">Task</option>
-                  <option value="person">Person</option>
-                  <option value="subscription">Subscription</option>
-                  <option value="custom_holiday">Event</option>
-                </select>
+                  onChange={setNewCategory}
+                  options={[
+                    { value: 'task', label: 'Task' },
+                    { value: 'person', label: 'Person' },
+                    { value: 'subscription', label: 'Subscription' },
+                    { value: 'custom_holiday', label: 'Event' },
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Default Notes</label>
@@ -204,11 +208,11 @@ export default function TemplatesPage() {
                 />
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-3 rounded-[8px] text-sm text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)] transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white py-3 rounded-[8px] text-sm font-medium transition-colors">Create</button>
+                <GlassButton type="button" onClick={() => setShowCreate(false)} className="flex-1">Cancel</GlassButton>
+                <GlassButton type="submit" material="tinted" className="flex-1 bg-[#3B82F6] text-white">Create</GlassButton>
               </div>
             </form>
-          </div>
+          </GlassCard>
         </div>
       )}
     </AppShell>

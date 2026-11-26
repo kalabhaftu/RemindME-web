@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { GlassCard } from '@/components/liquid-glass'
 
 type Section = { title: string; body: string[] }
 
@@ -7,7 +8,8 @@ export function LegalDocument({ title, updated, sections }: { title: string; upd
     <main className="min-h-screen bg-[var(--bg-canvas)] px-5 py-8 text-[rgba(255,255,255,0.9)] sm:px-8">
       <div className="mx-auto max-w-3xl">
         <Link href="/login" className="text-sm font-semibold text-[#8DB8FF] hover:text-white">← RemindME</Link>
-        <article className="rm-surface-elevated mt-8 rounded-[28px] p-6 sm:p-10">
+        <GlassCard tint={0.65} blur={16} className="mt-8 rounded-[28px] p-6 sm:p-10">
+          <article>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8DB8FF]">RemindME · draft for review</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">{title}</h1>
           <p className="mt-2 text-xs text-[rgba(255,255,255,0.5)]">Last updated {updated}</p>
@@ -21,7 +23,8 @@ export function LegalDocument({ title, updated, sections }: { title: string; upd
               </section>
             ))}
           </div>
-        </article>
+          </article>
+        </GlassCard>
       </div>
     </main>
   )

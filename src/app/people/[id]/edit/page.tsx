@@ -10,6 +10,8 @@ import { NotificationPrefsForm, prefsMatrixToPayload, PrefsMatrix } from '@/comp
 import { prefsFromItem } from '@/lib/prefs-utils'
 import { RELATIONSHIP_LABELS, GENDER_OPTIONS } from '@/lib/constants'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
+import { CustomSelect } from '@/components/forms/CustomSelect'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 
 export default function EditPersonPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -101,7 +103,7 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>}
 
-          <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
+          <GlassCard tint={0.48} blur={14} className="rounded-[24px] p-6 space-y-4">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden shrink-0">
                 {avatarUrl ? (
@@ -157,21 +159,19 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Gender</label>
-                <select value={gender} onChange={e => setGender(e.target.value)}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60">
-                  {GENDER_OPTIONS.map(({ value, label }) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={gender}
+                  onChange={setGender}
+                  options={GENDER_OPTIONS.map(({ value, label }) => ({ value, label }))}
+                />
               </div>
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Relationship</label>
-                <select value={relationship} onChange={e => setRelationship(e.target.value)}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 focus:outline-none focus:border-[#3B82F6]/60">
-                  {Object.entries(RELATIONSHIP_LABELS).map(([key, { label, emoji }]) => (
-                    <option key={key} value={key}>{emoji} {label}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={relationship}
+                  onChange={setRelationship}
+                  options={Object.entries(RELATIONSHIP_LABELS).map(([key, { label, emoji }]) => ({ value: key, label: `${emoji} ${label}` }))}
+                />
               </div>
             </div>
 
@@ -193,17 +193,17 @@ export default function EditPersonPage({ params }: { params: Promise<{ id: strin
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 resize-none focus:outline-none focus:border-[#3B82F6]/60" />
             </div>
-          </section>
+          </GlassCard>
 
-          <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
+          <GlassCard tint={0.48} blur={14} className="rounded-[24px] p-6 space-y-4">
             <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Notification preferences</h3>
             <NotificationPrefsForm matrix={prefsMatrix} onChange={setPrefsMatrix} />
-          </section>
+          </GlassCard>
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-[#3B82F6] hover:bg-[#5B9CFF] text-white font-medium py-4 rounded-[8px] disabled:opacity-50">
+          <GlassButton type="submit" material="tinted" size="lg" disabled={loading}
+            className="w-full bg-[#3B82F6] text-white">
             {loading ? 'Saving...' : 'Save Changes'}
-          </button>
+          </GlassButton>
         </form>
       </div>
     </AppShell>

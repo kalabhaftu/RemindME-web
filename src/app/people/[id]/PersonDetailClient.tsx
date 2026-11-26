@@ -11,6 +11,7 @@ import { TagPill } from '@/components/ui/TagPill'
 import { ReminderItemWithDetails, deleteReminder } from '@/app/actions/reminders'
 import { getAge, getDaysUntilBirthday, getZodiacSign } from '@/utils/computed'
 import { GENDER_LABELS, RELATIONSHIP_LABELS, ZODIAC_META } from '@/lib/constants'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 
 export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) {
   const router = useRouter()
@@ -47,7 +48,7 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
           <ArrowLeft size={16} /> Back to People
         </Link>
 
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-6 space-y-6">
+        <GlassCard tint={0.5} blur={14} className="rounded-[24px] p-6 space-y-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-[rgba(59,130,246,0.15)] flex items-center justify-center">
@@ -63,12 +64,12 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Link href={`/people/${item.id}/edit`} className="px-4 py-2 bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.08)] rounded-lg text-sm font-medium transition-colors">
-                Edit
-              </Link>
-              <button onClick={() => setIsDeleting(true)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
-                <Trash2 size={18} />
-              </button>
+              <GlassButton asChild size="sm">
+                <Link href={`/people/${item.id}/edit`}>Edit</Link>
+              </GlassButton>
+              <GlassButton size="sm" onClick={() => setIsDeleting(true)} className="w-9 h-8 !px-0 text-red-400" aria-label="Delete">
+                <Trash2 size={16} />
+              </GlassButton>
             </div>
           </div>
 
@@ -122,7 +123,7 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
               </div>
             </div>
           )}
-        </div>
+        </GlassCard>
       </div>
 
       <Modal isOpen={isDeleting} onClose={() => setIsDeleting(false)} title="Confirm Delete">
@@ -135,19 +136,20 @@ export function PersonDetailClient({ item }: { item: ReminderItemWithDetails }) 
             <p className="text-sm text-[var(--text-tertiary)] mt-1">This action cannot be undone.</p>
           </div>
           <div className="flex gap-3 w-full mt-4">
-            <button 
+            <GlassButton
               onClick={() => setIsDeleting(false)}
-              className="flex-1 px-4 py-2 bg-[var(--bg-surface1)] hover:bg-[var(--bg-surface2)] border border-[var(--glass-border)] rounded-lg text-sm font-medium transition-colors"
+              className="flex-1"
             >
               Cancel
-            </button>
-            <button 
+            </GlassButton>
+            <GlassButton
+              material="tinted"
               disabled={isPending}
               onClick={handleDelete}
-              className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex-1 bg-red-500/25 text-red-300"
             >
               {isPending ? 'Deleting...' : 'Delete'}
-            </button>
+            </GlassButton>
           </div>
         </div>
       </Modal>

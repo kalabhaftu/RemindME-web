@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { RefreshCw, Home, AlertCircle } from 'lucide-react'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 
 export default function ErrorBoundary({
   error,
@@ -17,7 +18,7 @@ export default function ErrorBoundary({
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 text-center">
-      <div className="max-w-md w-full bg-[rgba(15,18,28,0.55)] border border-[rgba(255,255,255,0.08)] rounded-[24px] p-8 backdrop-blur-xl shadow-2xl">
+      <GlassCard tint={0.68} blur={16} className="max-w-md w-full rounded-[24px] p-8">
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
           <AlertCircle size={32} className="text-red-400" />
         </div>
@@ -26,20 +27,21 @@ export default function ErrorBoundary({
           An unexpected error occurred while loading this view. You can reload or return to the dashboard.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
+          <GlassButton
+            material="tinted"
+            size="md"
             onClick={() => reset()}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white text-sm font-semibold transition-all shadow-lg shadow-blue-500/20 cursor-pointer"
+            className="bg-[#3B82F6] text-white"
           >
             <RefreshCw size={16} /> Try Again
-          </button>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.08)] text-white text-sm font-medium transition-colors"
-          >
-            <Home size={16} /> Dashboard
-          </Link>
+          </GlassButton>
+          <GlassButton asChild size="md">
+            <Link href="/">
+              <Home size={16} /> Dashboard
+            </Link>
+          </GlassButton>
         </div>
-      </div>
+      </GlassCard>
     </div>
   )
 }

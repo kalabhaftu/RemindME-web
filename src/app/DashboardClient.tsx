@@ -12,6 +12,7 @@ import { UpcomingPanel } from '@/components/UpcomingPanel'
 import { SelectedDayPanel } from '@/components/SelectedDayPanel'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { AppShell } from '@/components/AppShell'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 
 const QUICK_ADD = [
   { href: '/people/new', label: 'Person', icon: Users },
@@ -118,29 +119,23 @@ export default function DashboardClient({ initialReminders }: { initialReminders
           { href: '/subscriptions', label: 'Subscriptions', count: stats.subs },
           { href: '/tasks', label: 'Tasks', count: stats.tasks },
         ].map(s => (
-          <Link key={s.href} href={s.href}
-            className="p-5 bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[24px] hover:bg-[rgba(255,255,255,0.08)] transition-all hover:scale-[1.02] shadow-[0_8px_32px_rgba(0,0,0,0.15)] flex flex-col justify-between"
-            style={{
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
-            }}
-          >
-            <div className="text-[28px] font-extrabold font-mono text-[#3B82F6]">{s.count}</div>
-            <div className="text-[12px] font-semibold text-[rgba(255,255,255,0.6)] uppercase tracking-wider mt-1">{s.label}</div>
+          <Link key={s.href} href={s.href} className="block group">
+            <GlassCard tint={0.5} blur={14} className="p-5 rounded-[24px] transition-transform duration-200 group-hover:scale-[1.02] flex flex-col justify-between">
+              <div className="text-[28px] font-extrabold font-mono text-[#3B82F6]">{s.count}</div>
+              <div className="text-[12px] font-semibold text-[rgba(255,255,255,0.6)] uppercase tracking-wider mt-1">{s.label}</div>
+            </GlassCard>
           </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {QUICK_ADD.map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs font-semibold text-[rgba(255,255,255,0.8)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white transition-all active:scale-95 text-center shadow-sm"
-            style={{
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
-            }}
-          >
-            <Icon size={14} className="text-[#3B82F6] shrink-0" />
-            <span>Add {label}</span>
-          </Link>
+          <GlassButton key={href} asChild size="md" className="w-full text-xs font-semibold">
+            <Link href={href}>
+              <Icon size={14} className="text-[#3B82F6] shrink-0" />
+              <span>Add {label}</span>
+            </Link>
+          </GlassButton>
         ))}
       </div>
 

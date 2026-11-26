@@ -7,6 +7,8 @@ import { Gift, Check } from 'lucide-react'
 import { AppShell, AddButton } from '@/components/AppShell'
 import { createReminder, deleteReminder } from '@/app/actions/reminders'
 import { useRouter } from 'next/navigation'
+import { CustomSelect } from '@/components/forms/CustomSelect'
+import { GlassCard } from '@/components/liquid-glass'
 
 type NagerHoliday = {
   date: string
@@ -182,17 +184,13 @@ export default function HolidaysPage() {
         </div>
       )}
 
-      <div className="mb-6">
+      <div className="mb-6 max-w-sm">
         <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Country</label>
-        <select
+        <CustomSelect
           value={country}
-          onChange={e => setCountry(e.target.value)}
-          className="w-full max-w-sm bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-sm focus:outline-none focus:border-[#3B82F6]/60"
-        >
-          {countries.map(c => (
-            <option key={c.countryCode} value={c.countryCode}>{c.name}</option>
-          ))}
-        </select>
+          onChange={setCountry}
+          options={countries.map(c => ({ value: c.countryCode, label: c.name }))}
+        />
       </div>
 
       {loading || loadingHolidays ? (
@@ -200,33 +198,35 @@ export default function HolidaysPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6]" />
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {Array.from(new Map(holidays.map(h => [holidayKey(h), h])).values()).map(h => {
             const key = holidayKey(h)
             const active = subscribedKeys.has(key)
             return (
-              <button
+              <GlassCard
                 key={key}
-                onClick={() => toggleHoliday(h)}
-                disabled={toggling === key}
-                className={`rm-control w-full p-4 rounded-[14px] border flex items-center justify-between text-left transition-colors ${
-                  active
-                    ? 'bg-[rgba(59,130,246,0.1)] border-[rgba(59,130,246,0.3)]'
-                    : 'bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.06)]'
-                }`}
+                tint={active ? 0.62 : 0.44}
+                blur={12}
+                className="w-full rounded-[18px]"
               >
-                <div>
-                  <div className="text-[14px] font-medium">{h.localName}</div>
-                  <div className="text-[12px] font-mono text-[rgba(255,255,255,0.45)] mt-0.5">
-                    {format(parseISO(h.date), 'EEEE, MMMM d, yyyy')}
+                <button
+                  onClick={() => toggleHoliday(h)}
+                  disabled={toggling === key}
+                  className="w-full p-4 flex items-center justify-between text-left cursor-pointer disabled:opacity-50"
+                >
+                  <div>
+                    <div className="text-[14px] font-medium">{h.localName}</div>
+                    <div className="text-[12px] font-mono text-[rgba(255,255,255,0.45)] mt-0.5">
+                      {format(parseISO(h.date), 'EEEE, MMMM d, yyyy')}
+                    </div>
                   </div>
-                </div>
-                <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                  active ? 'bg-[#3B82F6] border-[#3B82F6]' : 'border-[rgba(255,255,255,0.2)]'
-                }`}>
-                  {active && <Check size={14} className="text-white" />}
-                </div>
-              </button>
+                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${
+                    active ? 'bg-[#3B82F6] border-[#3B82F6]' : 'border-[rgba(255,255,255,0.2)]'
+                  }`}>
+                    {active && <Check size={14} className="text-white" />}
+                  </div>
+                </button>
+              </GlassCard>
             )
           })}
         </div>

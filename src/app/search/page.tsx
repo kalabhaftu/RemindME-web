@@ -8,6 +8,7 @@ import { format } from 'date-fns'
 import { AppShell } from '@/components/AppShell'
 import { getEditHref } from '@/lib/edit-links'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
+import { GlassCard } from '@/components/liquid-glass'
 
 type SearchResult = {
   id: string
@@ -119,23 +120,25 @@ export default function SearchPage() {
           <Link
             key={item.id}
             href={getEditHref(item as ReminderItemWithDetails)}
-            className="rm-surface block p-4 rounded-[14px] hover:bg-[var(--surface-hover)] transition-colors"
+            className="block"
           >
-            <div className="flex items-center gap-3">
-              <span className={categoryColor(item.category)}>{categoryIcon(item.category)}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[rgba(255,255,255,0.92)] truncate">{item.name}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)]">{item.category}</span>
+            <GlassCard tint={0.48} blur={12} className="p-4 rounded-[18px]">
+              <div className="flex items-center gap-3">
+                <span className={categoryColor(item.category)}>{categoryIcon(item.category)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-[rgba(255,255,255,0.92)] truncate">{item.name}</span>
+                    <span className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.3)]">{item.category}</span>
+                  </div>
+                  {item.notes && (
+                    <p className="text-xs text-[rgba(255,255,255,0.45)] mt-0.5 truncate">{item.notes}</p>
+                  )}
                 </div>
-                {item.notes && (
-                  <p className="text-xs text-[rgba(255,255,255,0.45)] mt-0.5 truncate">{item.notes}</p>
-                )}
+                <time className="text-[11px] text-[rgba(255,255,255,0.3)] font-mono shrink-0">
+                  {format(new Date(item.created_at), 'MMM d')}
+                </time>
               </div>
-              <time className="text-[11px] text-[rgba(255,255,255,0.3)] font-mono shrink-0">
-                {format(new Date(item.created_at), 'MMM d')}
-              </time>
-            </div>
+            </GlassCard>
           </Link>
         ))}
         </div>

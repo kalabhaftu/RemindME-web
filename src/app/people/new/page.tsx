@@ -8,6 +8,7 @@ import { createReminder } from '@/app/actions/reminders'
 import { AppShell } from '@/components/AppShell'
 import { NotificationPrefsForm, useDefaultPrefs, prefsMatrixToPayload } from '@/components/forms/NotificationPrefs'
 import { CustomSelect } from '@/components/forms/CustomSelect'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 import { RELATIONSHIP_LABELS, GENDER_OPTIONS } from '@/lib/constants'
 
 export default function NewPersonPage() {
@@ -88,7 +89,7 @@ export default function NewPersonPage() {
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
           )}
 
-          <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
+          <GlassCard tint={0.48} blur={14} className="rounded-[24px] p-6 space-y-4">
             <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Basic info</h3>
 
             <div className="flex items-center gap-4">
@@ -194,21 +195,23 @@ export default function NewPersonPage() {
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] placeholder-[rgba(255,255,255,0.38)] focus:outline-none focus:border-[#3B82F6]/60 resize-none"
               />
             </div>
-          </section>
+          </GlassCard>
 
-          <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
+          <GlassCard tint={0.48} blur={14} className="rounded-[24px] p-6 space-y-4">
             <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Notification preferences</h3>
             <p className="text-[12px] text-[rgba(255,255,255,0.38)]">Saved per person — not shared across your list.</p>
             <NotificationPrefsForm matrix={prefsMatrix} onChange={setPrefsMatrix} />
-          </section>
+          </GlassCard>
 
-          <button
+          <GlassButton
             type="submit"
+            material="tinted"
+            size="lg"
             disabled={loading}
-            className="w-full bg-[#3B82F6] hover:bg-[#5B9CFF] text-white font-medium py-4 rounded-[8px] transition-colors disabled:opacity-50"
+            className="w-full bg-[#3B82F6] text-white"
           >
             {loading ? 'Saving...' : 'Add Person'}
-          </button>
+          </GlassButton>
         </form>
       </div>
     </AppShell>

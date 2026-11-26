@@ -8,6 +8,8 @@ import { createReminder } from '@/app/actions/reminders'
 import { AppShell } from '@/components/AppShell'
 import { ResilientBrandImage } from '@/components/ui/ResilientBrandImage'
 import { NotificationPrefsForm, useDefaultPrefs, prefsMatrixToPayload } from '@/components/forms/NotificationPrefs'
+import { CustomSelect } from '@/components/forms/CustomSelect'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 
 export default function NewSubscriptionPage() {
   const router = useRouter()
@@ -112,7 +114,7 @@ export default function NewSubscriptionPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>}
 
-          <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
+          <GlassCard tint={0.48} blur={14} className="rounded-[24px] p-6 space-y-4">
             <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Service</h3>
 
             <div>
@@ -149,33 +151,44 @@ export default function NewSubscriptionPage() {
               </div>
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Currency</label>
-                <select value={billingCurrency} onChange={e => setBillingCurrency(e.target.value)}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60">
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                </select>
+                <CustomSelect
+                  value={billingCurrency}
+                  onChange={setBillingCurrency}
+                  options={[
+                    { value: 'USD', label: 'USD' },
+                    { value: 'EUR', label: 'EUR' },
+                    { value: 'GBP', label: 'GBP' },
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Cycle</label>
-                <select value={cycle} onChange={e => setCycle(e.target.value as 'weekly' | 'monthly' | 'yearly')}
-                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60">
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
+                <CustomSelect
+                  value={cycle}
+                  onChange={(v) => setCycle(v as 'weekly' | 'monthly' | 'yearly')}
+                  options={[
+                    { value: 'weekly', label: 'Weekly' },
+                    { value: 'monthly', label: 'Monthly' },
+                    { value: 'yearly', label: 'Yearly' },
+                  ]}
+                />
               </div>
             </div>
 
             <div>
               <label className="block text-[12px] uppercase tracking-[0.02em] font-medium text-[rgba(255,255,255,0.6)] mb-2">Repeat for</label>
               <div className="flex gap-3">
-                <select value={ends} onChange={e => setEnds(e.target.value as typeof ends)}
-                  className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-sm focus:outline-none focus:border-[#3B82F6]/60">
-                  <option value="never">Forever</option>
-                  <option value="after_occurrences">Number of renewals</option>
-                  <option value="on_date">Until date</option>
-                </select>
+                <div className="flex-1">
+                  <CustomSelect
+                    value={ends}
+                    onChange={(v) => setEnds(v as typeof ends)}
+                    options={[
+                      { value: 'never', label: 'Forever' },
+                      { value: 'after_occurrences', label: 'Number of renewals' },
+                      { value: 'on_date', label: 'Until date' },
+                    ]}
+                  />
+                </div>
                 {ends === 'after_occurrences' && (
                   <input type="number" min="1" value={endsValue} onChange={e => setEndsValue(e.target.value)} placeholder="e.g. 12"
                     className="w-28 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-3 py-3 text-sm focus:outline-none focus:border-[#3B82F6]/60" />
@@ -192,17 +205,17 @@ export default function NewSubscriptionPage() {
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                 className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[8px] px-4 py-3 text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 resize-none" />
             </div>
-          </section>
+          </GlassCard>
 
-          <section className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 space-y-4">
+          <GlassCard tint={0.48} blur={14} className="rounded-[24px] p-6 space-y-4">
             <h3 className="text-[13px] uppercase tracking-[0.04em] font-medium text-[rgba(255,255,255,0.45)]">Notification preferences</h3>
             <NotificationPrefsForm matrix={prefsMatrix} onChange={setPrefsMatrix} />
-          </section>
+          </GlassCard>
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-[#3B82F6] hover:bg-[#5B9CFF] text-white font-medium py-4 rounded-[8px] transition-colors disabled:opacity-50">
+          <GlassButton type="submit" material="tinted" size="lg" disabled={loading}
+            className="w-full bg-[#3B82F6] text-white">
             {loading ? 'Saving...' : 'Add Subscription'}
-          </button>
+          </GlassButton>
         </form>
       </div>
     </AppShell>

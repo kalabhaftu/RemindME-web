@@ -1,11 +1,17 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { BellRing, Search, Layout, Settings, Plus, Home, Users, CreditCard, CheckSquare, Gift, MoreVertical } from 'lucide-react'
-import { cn } from '@/lib/cn'
 import { MobileAppHint } from '@/components/MobileAppHint'
+import { GlassCard, GlassButton, GlassTabs } from '@/components/liquid-glass'
+import {
+  GlassDropdownMenu,
+  GlassDropdownMenuTrigger,
+  GlassDropdownMenuContent,
+  GlassDropdownMenuItem,
+} from '@/components/liquid-glass/glass-dropdown-menu'
 
 const BASE_NAV_ITEMS = [
   { href: '/', label: 'Home', icon: Home },
@@ -25,19 +31,7 @@ export function AppShell({
   action?: React.ReactNode
 }) {
   const pathname = usePathname()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  
-  // Close dropdown menu when clicking outside
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleOutsideClick)
-    return () => document.removeEventListener('mousedown', handleOutsideClick)
-  }, [menuOpen])
+  const router = useRouter()
 
   // Dynamically append utility pages to nav items only when currently active on them
   const navItems = [...BASE_NAV_ITEMS]
@@ -48,6 +42,9 @@ export function AppShell({
   } else if (pathname.startsWith('/templates')) {
     navItems.push({ href: '/templates', label: 'Templates', icon: Layout })
   }
+
+  const activeNavHref =
+    navItems.find(({ href }) => (href === '/' ? pathname === '/' : pathname.startsWith(href)))?.href ?? '/'
 
   return (
     <div className="relative min-h-screen text-[rgba(255,255,255,0.92)] font-sans pb-12 overflow-x-clip bg-[var(--bg-canvas)]">
@@ -71,18 +68,9 @@ export function AppShell({
         />
       </div>
 
-      {/* Floating Island Header with Backing Refraction Layer - Sticky & Floating */}
+      {/* Floating Island Header with Liquid Glass Refraction */}
       <div className="sticky top-0 z-40 max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2 pointer-events-none">
-        {/* inner container: Removed overflow-hidden so absolute dropdown works */}
-        <div className="w-full relative pointer-events-auto">
-          {/* Backing Refractor */}
-          <div 
-            className="rm-surface-elevated absolute inset-0 rounded-[24px] z-0"
-            style={{
-              boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3)'
-            }}
-          />
-          {/* Interactive Sharp Content on Top */}
+        <GlassCard live tint={0.65} blur={16} className="w-full rounded-[24px] pointer-events-auto">
           <header className="relative z-10 w-full px-4 py-3 sm:px-6 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center justify-between gap-4 w-full md:w-auto">
               <div className="flex items-center gap-3 min-w-0">
@@ -103,41 +91,42 @@ export function AppShell({
               {/* Mobile Right Utility Cluster */}
               <div className="flex items-center gap-2 md:hidden">
                 {action}
-                <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-9 h-9 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] rounded-xl flex items-center justify-center hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.7)] hover:text-white transition-all cursor-pointer active:scale-95"
-                >
-                  <MoreVertical size={16} />
-                </button>
+                <GlassDropdownMenu>
+                  <GlassDropdownMenuTrigger asChild>
+                    <GlassButton size="sm" aria-label="More navigation" className="w-9 h-9 !px-0 rounded-xl">
+                      <MoreVertical size={16} />
+                    </GlassButton>
+                  </GlassDropdownMenuTrigger>
+                  <GlassDropdownMenuContent>
+                    <GlassDropdownMenuItem onSelect={() => router.push('/search')}>
+                      <Search size={14} className="text-[#3B82F6] mr-2" /> Search
+                    </GlassDropdownMenuItem>
+                    <GlassDropdownMenuItem onSelect={() => router.push('/templates')}>
+                      <Layout size={14} className="text-[#3B82F6] mr-2" /> Templates
+                    </GlassDropdownMenuItem>
+                    <GlassDropdownMenuItem onSelect={() => router.push('/settings')}>
+                      <Settings size={14} className="text-[#3B82F6] mr-2" /> Settings
+                    </GlassDropdownMenuItem>
+                  </GlassDropdownMenuContent>
+                </GlassDropdownMenu>
               </div>
             </div>
 
-            <nav className="flex items-center gap-1.5 p-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full overflow-x-auto no-scrollbar scroll-smooth w-full md:w-auto justify-between md:justify-center">
-              {navItems.map(({ href, label, icon: Icon }) => {
-                const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      'flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs font-bold tracking-wide transition-all whitespace-nowrap cursor-pointer active:scale-95 flex-grow md:flex-grow-0 justify-center',
-                      active
-                        ? 'bg-[#3B82F6] text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)] border-t border-[rgba(255,255,255,0.25)]'
-                        : 'text-gray-400 hover:text-white'
-                    )}
-                  >
-                    <Icon size={13} className="shrink-0" />
-                    {/* Responsive Name: Show always on desktop; show only on active on mobile */}
-                    <span className={cn(
-                      'transition-all duration-300',
-                      active ? 'inline' : 'hidden md:inline'
-                    )}>
-                      {label}
-                    </span>
-                  </Link>
-                )
-              })}
-            </nav>
+            <div className="overflow-x-auto no-scrollbar scroll-smooth w-full md:w-auto flex justify-center">
+              <GlassTabs
+                aria-label="Primary Navigation"
+                value={activeNavHref}
+                onValueChange={(href) => router.push(href)}
+                size="md"
+                highlightClassName="bg-[#3B82F6] text-white"
+                options={navItems.map(({ href, label, icon: Icon }) => ({
+                  value: href,
+                  label: <span className="hidden md:inline">{label}</span>,
+                  icon: <Icon size={13} />,
+                  'aria-label': label,
+                }))}
+              />
+            </div>
 
             <div className="hidden md:flex items-center gap-1.5 shrink-0">
               <Link href="/search" className="p-2.5 text-[rgba(255,255,255,0.6)] hover:text-white hover:bg-[rgba(255,255,255,0.08)] rounded-xl transition-all" title="Search">
@@ -152,40 +141,7 @@ export function AppShell({
               {action}
             </div>
           </header>
-
-          {/* Floating Dropdown Menu for Mobile */}
-          {menuOpen && (
-            <div 
-              ref={menuRef}
-              className="rm-surface-elevated absolute right-4 top-16 w-44 rounded-[20px] p-2 z-50 flex flex-col gap-1 md:hidden"
-              style={{
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 12px 40px rgba(0,0,0,0.4)'
-              }}
-            >
-              <Link 
-                href="/search" 
-                onClick={() => setMenuOpen(false)} 
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-[rgba(255,255,255,0.06)] text-gray-300 hover:text-white transition-colors"
-              >
-                <Search size={14} className="text-[#3B82F6]" /> Search
-              </Link>
-              <Link 
-                href="/templates" 
-                onClick={() => setMenuOpen(false)} 
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-[rgba(255,255,255,0.06)] text-gray-300 hover:text-white transition-colors"
-              >
-                <Layout size={14} className="text-[#3B82F6]" /> Templates
-              </Link>
-              <Link 
-                href="/settings" 
-                onClick={() => setMenuOpen(false)} 
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-[rgba(255,255,255,0.06)] text-gray-300 hover:text-white transition-colors"
-              >
-                <Settings size={14} className="text-[#3B82F6]" /> Settings
-              </Link>
-            </div>
-          )}
-        </div>
+        </GlassCard>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10">
@@ -216,12 +172,11 @@ export function AppShell({
 
 export function AddButton({ href, label }: { href: string; label: string }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#5B9CFF] text-white px-4 py-2 rounded-full text-xs font-semibold transition-all border-t border-[rgba(255,255,255,0.2)] shadow-[0_4px_12px_rgba(59,130,246,0.3)] active:scale-95 cursor-pointer shrink-0"
-    >
-      <Plus size={14} />
-      <span>{label}</span>
-    </Link>
+    <GlassButton asChild material="tinted" size="sm" className="bg-[#3B82F6] text-white shrink-0">
+      <Link href={href}>
+        <Plus size={14} />
+        <span>{label}</span>
+      </Link>
+    </GlassButton>
   )
 }

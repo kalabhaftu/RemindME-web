@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { GlassCard, GlassButton } from '@/components/liquid-glass'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -106,17 +107,8 @@ export default function LoginPage() {
         />
       </div>
 
-      {/* Floating Island Login Card with Backing Refraction */}
-      <div className="w-full max-w-md relative rounded-[32px] overflow-hidden">
-        {/* Backing Refractor */}
-        <div 
-          className="rm-surface-elevated absolute inset-0 rounded-[32px] backdrop-blur-[24px] z-0"
-          style={{
-            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3)'
-          }}
-        />
-        {/* Interactive Sharp Content on Top */}
-        <div className="relative z-10 p-8 md:p-10 w-full">
+      {/* Floating Island Login Card with Liquid Glass Refraction */}
+      <GlassCard live tint={0.68} blur={20} className="w-full max-w-md rounded-[32px] p-8 md:p-10 z-10">
           <h1 className="text-3xl mb-8 text-center font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
             RemindME
           </h1>
@@ -183,22 +175,24 @@ export default function LoginPage() {
             </div>
 
             <div className="flex gap-4 pt-2">
-              <button
+              <GlassButton
                 type="submit"
-                onClick={handleLogin}
+                material="tinted"
+                size="lg"
                 disabled={loading}
-                className="flex-1 py-3 px-4 rounded-full bg-[#3B82F6] hover:bg-[#5B9CFF] text-white font-semibold text-xs uppercase tracking-wider transition-all disabled:opacity-50 shadow-[0_4px_12px_rgba(59,130,246,0.3)] border-t border-[rgba(255,255,255,0.25)] active:scale-95 cursor-pointer"
+                className="flex-1 bg-[#3B82F6] text-white text-xs uppercase tracking-wider"
               >
                 Sign In
-              </button>
-              <button
+              </GlassButton>
+              <GlassButton
                 type="button"
                 onClick={handleSignUp}
+                size="lg"
                 disabled={loading}
-                className="flex-1 py-3 px-4 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] text-white font-semibold text-xs uppercase tracking-wider hover:bg-[rgba(255,255,255,0.08)] transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+                className="flex-1 text-xs uppercase tracking-wider"
               >
                 Sign Up
-              </button>
+              </GlassButton>
             </div>
           </form>
 
@@ -208,9 +202,11 @@ export default function LoginPage() {
             <hr className="w-full border-[rgba(255,255,255,0.06)]" />
           </div>
 
-          <button
+          <GlassButton
             onClick={handleGoogleLogin}
-            className="w-full mt-6 py-3 px-4 flex items-center justify-center gap-2.5 rounded-full bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-gray-100 transition-all active:scale-[0.98] cursor-pointer shadow-md"
+            material="tinted"
+            size="lg"
+            className="w-full mt-6 bg-white text-black text-xs uppercase tracking-wider"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" style={{ display: 'block' }}>
               <path
@@ -235,18 +231,18 @@ export default function LoginPage() {
               />
             </svg>
             Continue with Google
-          </button>
+          </GlassButton>
 
-          <button
+          <GlassButton
             type="button"
             onClick={handleMagicLink}
             disabled={loading}
-            className="w-full mt-3 py-3 px-4 rounded-full bg-[rgba(59,130,246,0.14)] border border-[rgba(59,130,246,0.3)] text-[#9cc4ff] font-semibold text-xs uppercase tracking-wider hover:bg-[rgba(59,130,246,0.22)] transition-all disabled:opacity-50 active:scale-[0.98] cursor-pointer"
+            size="lg"
+            className="w-full mt-3 text-[#9cc4ff] text-xs uppercase tracking-wider"
           >
             Send magic link
-          </button>
-        </div>
-      </div>
+          </GlassButton>
+      </GlassCard>
 
       <style jsx global>{`
         @keyframes login-float-1 {

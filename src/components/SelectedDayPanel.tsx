@@ -7,6 +7,7 @@ import { getZodiacSign } from '@/utils/computed'
 import { getEditHref } from '@/lib/edit-links'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Circle, Edit2, CheckCircle2, X } from 'lucide-react'
+import { GlassCard } from '@/components/liquid-glass'
 
 interface SelectedDayPanelProps {
   date: Date
@@ -57,12 +58,7 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
   const dateTitle = isTodayDate ? 'Today' : isTomorrowDate ? 'Tomorrow' : format(date, 'EEEE, MMM d, yyyy')
 
   return (
-    <div 
-      className="rm-surface-elevated rounded-[28px] p-6 sticky top-6 mt-6"
-      style={{
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
-      }}
-    >
+    <GlassCard live tint={0.68} blur={16} className="rounded-[28px] p-6 sticky top-6 mt-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[14px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.85)]">
           {dateTitle}
@@ -77,23 +73,17 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
 
       <div className="space-y-4">
         {occurrences.length === 0 ? (
-          <div 
-            className="rm-surface p-8 mt-4 text-center rounded-[24px] flex flex-col items-center justify-center"
-            style={{
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
-            }}
-          >
+          <GlassCard tint={0.35} blur={10} className="p-8 mt-4 text-center rounded-[24px] flex flex-col items-center justify-center">
             <Circle size={24} className="text-[rgba(255,255,255,0.15)] mb-3" />
             <p className="text-[12px] text-[rgba(255,255,255,0.38)]">No reminders on this day.</p>
-          </div>
+          </GlassCard>
         ) : (
           occurrences.map((occ, idx) => (
-            <div 
-              key={`${occ.item.id}-${idx}`} 
-              className="p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-[20px] flex justify-between items-center hover:bg-[rgba(255,255,255,0.06)] transition-all group shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
-              style={{
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
-              }}
+            <GlassCard
+              key={`${occ.item.id}-${idx}`}
+              tint={0.35}
+              blur={10}
+              className="p-4 rounded-[20px] flex justify-between items-center group"
             >
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -126,10 +116,10 @@ export function SelectedDayPanel({ date, occurrences, onClose, onMarkDone }: Sel
                   <Edit2 size={12} />
                 </Link>
               </div>
-            </div>
+            </GlassCard>
           ))
         )}
       </div>
-    </div>
+    </GlassCard>
   )
 }

@@ -10,6 +10,7 @@ import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { generateOccurrences, ReminderOccurrence } from '@/utils/computed-fields'
 import { getEditHref } from '@/lib/edit-links'
 import { cn } from '@/lib/cn'
+import { GlassCard, GlassTabs } from '@/components/liquid-glass'
 
 type InAppNotification = {
   id: string
@@ -126,24 +127,25 @@ export function NotificationsClient({
   return (
     <AppShell title="Notifications">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-2 mb-8 border-b border-[rgba(255,255,255,0.08)] pb-4">
-          {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'flex items-center gap-2 px-3 py-1.5 rounded-md text-[12px] font-medium uppercase tracking-[0.02em] transition-colors',
-                tab === t.id
-                  ? 'bg-[#3B82F6] text-white'
-                  : 'text-[rgba(255,255,255,0.6)] hover:bg-[rgba(255,255,255,0.06)]'
-              )}
-            >
-              {t.label}
-              {t.count != null && t.count > 0 && (
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[10px]">{t.count}</span>
-              )}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-3 mb-8 border-b border-[rgba(255,255,255,0.08)] pb-4">
+          <GlassTabs<Tab>
+            aria-label="Notification tabs"
+            value={tab}
+            onValueChange={setTab}
+            size="md"
+            highlightClassName="bg-[#3B82F6] text-white"
+            options={tabs.map(t => ({
+              value: t.id,
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <span>{t.label}</span>
+                  {t.count != null && t.count > 0 && (
+                    <span className="px-1.5 py-0.5 bg-white/20 rounded-full text-[10px]">{t.count}</span>
+                  )}
+                </span>
+              ),
+            }))}
+          />
           {tab === 'in_app' && unread > 0 && (
             <button onClick={markAllRead} className="ml-auto flex items-center gap-1.5 text-[12px] text-[#3B82F6] hover:text-[#5B9CFF]">
               <CheckCheck size={14} /> Mark all read
@@ -176,15 +178,12 @@ export function NotificationsClient({
               </div>
             ) : (
               notifications.map(n => (
-                <div
+                <GlassCard
                   key={n.id}
+                  tint={n.read_at ? 0.38 : 0.58}
+                  blur={12}
                   onClick={() => !n.read_at && markAsRead(n.id)}
-                  className={cn(
-                    'p-4 rounded-[12px] border cursor-pointer transition-colors',
-                    n.read_at
-                      ? 'bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.05)]'
-                      : 'bg-[rgba(59,130,246,0.06)] border-[#3B82F6]/20'
-                  )}
+                  className="p-4 rounded-[18px] cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -197,7 +196,7 @@ export function NotificationsClient({
                       {format(new Date(n.created_at), 'MMM d, HH:mm')}
                     </time>
                   </div>
-                </div>
+                </GlassCard>
               ))
             )}
           </div>

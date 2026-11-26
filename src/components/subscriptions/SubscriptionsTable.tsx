@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { EmptyState } from '@/components/EmptyState'
 import { ResilientBrandImage } from '@/components/ui/ResilientBrandImage'
+import { GlassCard } from '@/components/liquid-glass'
 
 function daysUntilRenewal(dateStr: string): number {
   const today = startOfDay(new Date())
@@ -51,12 +52,7 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
         className="w-full max-w-sm px-5 py-2.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-full text-xs text-[rgba(255,255,255,0.92)] focus:outline-none focus:border-[#3B82F6]/60 transition-all font-medium"
       />
 
-      <div 
-        className="overflow-x-auto rounded-[28px] border border-[rgba(255,255,255,0.06)] bg-[rgba(15,18,28,0.45)] backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.15)] no-scrollbar"
-        style={{
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
-        }}
-      >
+      <GlassCard tint={0.48} blur={14} className="overflow-x-auto rounded-[28px] no-scrollbar">
         <table className="w-full min-w-0 text-left border-collapse">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
@@ -98,7 +94,7 @@ export function SubscriptionsTable({ items }: { items: ReminderItemWithDetails[]
             })}
           </tbody>
         </table>
-      </div>
+      </GlassCard>
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { ReminderItemWithDetails } from '@/app/actions/reminders'
 import { EmptyState } from '@/components/EmptyState'
 import * as Phosphor from '@phosphor-icons/react'
 import { formatLocalDateTime } from '@/lib/local-time'
+import { GlassCard } from '@/components/liquid-glass'
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   trash: Phosphor.Trash,
@@ -69,12 +70,11 @@ export function TasksTable({
           const dueStr = t?.due_at ? formatLocalDateTime(t.due_at) : 'No due date'
           const freq = item.recurrence_rules?.frequency
           return (
-            <div 
-              key={item.id} 
-              className="p-4 bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-[20px] flex items-center gap-4 hover:bg-[rgba(255,255,255,0.08)] transition-all group shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
-              style={{
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
-              }}
+            <GlassCard
+              key={item.id}
+              tint={0.48}
+              blur={12}
+              className="p-4 rounded-[20px] flex items-center gap-4 group"
             >
               <Link href={`/tasks/${item.id}`} className="flex items-center gap-4 flex-1 min-w-0 group-hover:text-[#5B9CFF] transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0">
@@ -94,7 +94,7 @@ export function TasksTable({
                   <Circle size={14} />
                 </button>
               )}
-            </div>
+            </GlassCard>
           )
         })}
       </div>

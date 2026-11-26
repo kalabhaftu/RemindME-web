@@ -8,6 +8,7 @@ import { getEditHref } from '@/lib/edit-links'
 import { snoozeReminder } from '@/app/actions/reminders'
 import { format, isToday, isTomorrow, differenceInDays } from 'date-fns'
 import { Circle, Edit2, CheckCircle2, BellRing } from 'lucide-react'
+import { GlassCard, GlassTabs } from '@/components/liquid-glass'
 
 interface UpcomingPanelProps {
   filter: '3d' | '7d' | 'month' | 'all'
@@ -83,47 +84,34 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
 
   return (
     <div className="space-y-8">
-      <div className="flex gap-2 p-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-full max-w-max flex-wrap">
-        {[
-          { key: '3d', label: '3 Days' },
-          { key: '7d', label: '7 Days' },
-          { key: 'month', label: 'Month' },
-          { key: 'all', label: 'All' },
-        ].map(opt => (
-          <button 
-            key={opt.key}
-            onClick={() => setFilter(opt.key as '3d' | '7d' | 'month' | 'all')}
-            className={`text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all duration-300 cursor-pointer ${
-              filter === opt.key 
-                ? 'bg-[#3B82F6] text-white shadow-sm border-t border-[rgba(255,255,255,0.25)]' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      <GlassTabs<'3d' | '7d' | 'month' | 'all'>
+        aria-label="Upcoming filter"
+        value={filter}
+        onValueChange={setFilter}
+        size="md"
+        highlightClassName="bg-[#3B82F6] text-white"
+        options={[
+          { value: '3d', label: '3 Days' },
+          { value: '7d', label: '7 Days' },
+          { value: 'month', label: 'Month' },
+          { value: 'all', label: 'All' },
+        ]}
+      />
 
       <div className="space-y-4">
         {occurrences.length === 0 ? (
-          <div 
-            className="p-12 text-center bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[28px] backdrop-blur-[20px] flex flex-col items-center justify-center"
-            style={{
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08)'
-            }}
-          >
+          <GlassCard tint={0.48} blur={14} className="p-12 text-center rounded-[28px] flex flex-col items-center justify-center">
             <Circle size={32} className="text-[rgba(255,255,255,0.15)] mb-4" />
             <h3 className="text-[14px] font-bold text-[rgba(255,255,255,0.6)] mb-1">All Caught Up</h3>
             <p className="text-[12px] text-[rgba(255,255,255,0.38)]">No upcoming reminders for this period.</p>
-          </div>
+          </GlassCard>
         ) : (
           occurrences.map((occ, idx) => (
-            <div 
-              key={`${occ.item.id}-${idx}`} 
-              className="p-5 bg-[rgba(15,18,28,0.45)] border border-[rgba(255,255,255,0.06)] rounded-[24px] backdrop-blur-[20px] flex justify-between items-center hover:bg-[rgba(255,255,255,0.08)] transition-all group shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
-              style={{
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.15)'
-              }}
+            <GlassCard
+              key={`${occ.item.id}-${idx}`}
+              tint={0.48}
+              blur={14}
+              className="p-5 rounded-[24px] flex justify-between items-center group"
             >
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -170,7 +158,7 @@ export function UpcomingPanel({ filter, setFilter, occurrences, onMarkDone, onSn
                   <Edit2 size={14} />
                 </Link>
               </div>
-            </div>
+            </GlassCard>
           ))
         )}
       </div>
